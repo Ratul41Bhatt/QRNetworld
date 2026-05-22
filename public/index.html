@@ -1,0 +1,1270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MTB Soundbox - Admin & Simulator Console</title>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-primary: #0a0f1d;
+            --bg-surface: rgba(16, 22, 42, 0.7);
+            --bg-surface-opaque: #10162a;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --primary-glow: rgba(59, 130, 246, 0.35);
+            --accent: #10b981;
+            --accent-glow: rgba(16, 185, 129, 0.25);
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --danger-glow: rgba(239, 68, 68, 0.25);
+            --warning: #f59e0b;
+            --terminal-bg: #05070f;
+            --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 45%);
+            background-attachment: fixed;
+        }
+
+        header {
+            background-color: rgba(10, 15, 29, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 2.25rem;
+            height: 2.25rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .logo-text h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-text p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            padding: 0.375rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--text-secondary);
+            display: inline-block;
+        }
+
+        .status-dot.online {
+            background-color: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.offline {
+            background-color: var(--danger);
+            box-shadow: 0 0 8px var(--danger-glow);
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 2rem;
+        }
+
+        @media (max-width: 1024px) {
+            main {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .dashboard-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .dashboard-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Glassmorphic Panel styling */
+        .panel {
+            background-color: var(--bg-surface);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .panel:hover {
+            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #ffffff;
+        }
+
+        .panel-title svg {
+            color: var(--primary);
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        /* Forms styling */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            background-color: rgba(5, 7, 15, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.625rem 0.875rem;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-glow);
+            background-color: rgba(5, 7, 15, 0.9);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1.25rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px var(--primary-glow);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+            box-shadow: 0 4px 12px var(--danger-glow);
+        }
+
+        .btn-danger:hover {
+            background-color: var(--danger-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px var(--danger-glow);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .btn-outline:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-color: var(--text-secondary);
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            border-radius: 0.375rem;
+        }
+
+        .btn-block {
+            display: flex;
+            width: 100%;
+        }
+
+        /* Mapping Table styling */
+        .table-container {
+            overflow-x: auto;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.875rem;
+        }
+
+        th {
+            background-color: rgba(5, 7, 15, 0.4);
+            color: var(--text-secondary);
+            font-weight: 600;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            color: var(--text-primary);
+        }
+
+        tr:hover td {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        .text-mono {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            background-color: rgba(255, 255, 255, 0.04);
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Live Console/Logs Section */
+        .terminal {
+            background-color: var(--terminal-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            max-height: 250px;
+            overflow-y: auto;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            gap: 0.375rem;
+        }
+
+        .terminal-line {
+            line-height: 1.4;
+            word-break: break-all;
+        }
+
+        .terminal-time {
+            color: #64748b;
+            margin-right: 0.5rem;
+        }
+
+        .terminal-tag-in {
+            color: #4ade80;
+            font-weight: 500;
+        }
+
+        .terminal-tag-out {
+            color: #f43f5e;
+            font-weight: 500;
+        }
+
+        .terminal-tag-sys {
+            color: #a855f7;
+            font-weight: 500;
+        }
+
+        .quick-presets {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        /* Soundbox Visualizer styling */
+        .soundbox-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .soundbox-case {
+            width: 250px;
+            height: 380px;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-radius: 2rem;
+            border: 4px solid #334155;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.7),
+                0 0 30px rgba(59, 130, 246, 0.15),
+                inset 0 2px 4px rgba(255, 255, 255, 0.1);
+            position: relative;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Device LED status */
+        .soundbox-led {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #64748b;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+            position: absolute;
+            top: 1.25rem;
+            right: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .soundbox-led.active {
+            background-color: #10b981;
+            box-shadow: 0 0 12px #10b981, inset 0 1px 2px rgba(255, 255, 255, 0.5);
+        }
+
+        .soundbox-led.receiving {
+            background-color: #3b82f6;
+            box-shadow: 0 0 15px #3b82f6, inset 0 1px 2px rgba(255, 255, 255, 0.5);
+            animation: pulse 0.5s infinite;
+        }
+
+        /* Speaker grill */
+        .soundbox-grill {
+            width: 100%;
+            height: 110px;
+            background-image: radial-gradient(circle, #020617 30%, transparent 35%);
+            background-size: 6px 6px;
+            opacity: 0.85;
+            border-radius: 1rem;
+            margin-top: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Screen display */
+        .soundbox-screen {
+            width: 100%;
+            height: 80px;
+            background-color: #020617;
+            border: 2px solid #334155;
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: #22c55e;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .soundbox-screen::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            );
+            background-size: 100% 4px;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .screen-line-1 {
+            font-weight: bold;
+            color: #4ade80;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .screen-line-2 {
+            font-size: 1.15rem;
+            text-align: right;
+            color: #10b981;
+            font-weight: 700;
+            text-shadow: 0 0 4px var(--accent-glow);
+        }
+
+        /* Soundbox branding info */
+        .soundbox-logo {
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #94a3b8;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-top: 0.5rem;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 0.15rem;
+        }
+
+        /* Soundbox QR holder visual */
+        .soundbox-qr-sticker {
+            width: 110px;
+            height: 110px;
+            background-color: white;
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            margin-bottom: 0.75rem;
+            position: relative;
+        }
+
+        .soundbox-qr-img {
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(45deg, #000 0px, #000 2px, transparent 2px, transparent 10px),
+                repeating-linear-gradient(-45deg, #000 0px, #000 2px, #fff 2px, #fff 10px);
+            opacity: 0.85;
+        }
+
+        .soundbox-qr-sticker::after {
+            content: 'SCAN MTB';
+            position: absolute;
+            bottom: -8px;
+            background-color: #ef4444;
+            color: white;
+            font-size: 0.55rem;
+            font-weight: 900;
+            padding: 0.1rem 0.4rem;
+            border-radius: 0.25rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            white-space: nowrap;
+        }
+
+        /* Soundbox interactive controls */
+        .device-info-badge {
+            background-color: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            width: 100%;
+            font-size: 0.75rem;
+        }
+
+        .device-info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+        }
+        .device-info-row:last-child {
+            margin-bottom: 0;
+        }
+        .device-info-label {
+            color: var(--text-secondary);
+        }
+        .device-info-val {
+            font-weight: 500;
+            color: #ffffff;
+        }
+
+        /* Custom notifications/toasts */
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            z-index: 1000;
+        }
+
+        .toast {
+            background-color: #1e293b;
+            border: 1px solid var(--border-color);
+            padding: 1rem 1.25rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #ffffff;
+            font-size: 0.875rem;
+            min-width: 300px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-icon {
+            flex-shrink: 0;
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        .toast-success {
+            border-left: 4px solid var(--accent);
+        }
+        .toast-success .toast-icon {
+            color: var(--accent);
+        }
+
+        .toast-error {
+            border-left: 4px solid var(--danger);
+        }
+        .toast-error .toast-icon {
+            color: var(--danger);
+        }
+
+        .badge-type {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            text-transform: uppercase;
+        }
+        .badge-firebase {
+            background-color: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .badge-local {
+            background-color: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-container">
+            <div class="logo-icon">M</div>
+            <div class="logo-text">
+                <h1>MTB Soundbox Console</h1>
+                <p>Mutual Trust Bank Payment Push System</p>
+            </div>
+        </div>
+        <div class="connection-status">
+            <div id="db-badge" class="status-badge">
+                <span>Database:</span>
+                <span id="db-type-label" class="badge-type badge-local">Checking...</span>
+            </div>
+            <div class="status-badge">
+                <span id="broker-indicator-dot" class="status-dot"></span>
+                <span id="broker-label">Broker: Connecting...</span>
+            </div>
+            <div class="status-badge">
+                <span id="server-indicator-dot" class="status-dot"></span>
+                <span id="server-label">API Gateway: Checking...</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Left Column: Settings and simulator -->
+        <div class="dashboard-content">
+            
+            <div class="dashboard-row">
+                <!-- Mappings Form Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+                            </svg>
+                            Register New Soundbox
+                        </h2>
+                    </div>
+                    <form id="mapping-form">
+                        <div class="form-group">
+                            <label for="mid-input">Merchant ID (MID)</label>
+                            <input type="text" id="mid-input" class="form-control" placeholder="e.g. 102000000000040" required autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="sn-input">Device Serial Number (SN)</label>
+                            <input type="text" id="sn-input" class="form-control" placeholder="e.g. 161P12345678" required autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="merchant-name-input">Merchant Name / Store Title</label>
+                            <input type="text" id="merchant-name-input" class="form-control" placeholder="e.g. Acme Retailers Ltd." autocomplete="off">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1.1rem;height:1.1rem;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                            Register & Sync Mapping
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Webhook Simulator Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 9.75L16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
+                            </svg>
+                            Payment Callback Webhook Simulator
+                        </h2>
+                    </div>
+                    
+                    <div class="quick-presets">
+                        <button class="btn btn-outline btn-sm" onclick="applyPreset(10, '102000000000040')">৳10 Demo</button>
+                        <button class="btn btn-outline btn-sm" onclick="applyPreset(250, '102000000000040')">৳250 Demo</button>
+                        <button class="btn btn-outline btn-sm" onclick="applyPreset(1500.50, '102000000000040')">৳1,500.50 Demo</button>
+                    </div>
+
+                    <form id="webhook-form">
+                        <div class="form-group">
+                            <label for="sim-mid">Target Merchant ID (MID)</label>
+                            <input type="text" id="sim-mid" class="form-control" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="sim-amount">Amount (BDT)</label>
+                                <input type="number" id="sim-amount" step="0.01" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="sim-invoice">Invoice / Bill Ref</label>
+                                <input type="text" id="sim-invoice" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="sim-rrn">RRN (Retrieval Ref Num)</label>
+                                <input type="text" id="sim-rrn" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="sim-card">Card / Acc No.</label>
+                                <input type="text" id="sim-card" class="form-control" placeholder="xxxx-xxxx-xxxx-1234">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-danger btn-block">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1.1rem;height:1.1rem;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.019-12.12a14.98 14.98 0 00-6.16 12.12A14.98 14.98 0 009.63 15.41M9.63 15.41a14.914 14.914 0 015.84-2.58m-5.84 2.58H4.81" />
+                            </svg>
+                            Trigger Callback Webhook
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Active Mappings Table -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375 0 11-.75 0 .375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375 0 11-.75 0 .375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375 0 11-.75 0 .375 0 01.75 0z" />
+                        </svg>
+                        Device Mapping Database (Firestore Synced)
+                    </h2>
+                    <button class="btn btn-outline btn-sm" onclick="fetchMappings()">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:0.875rem;height:0.875rem;">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                        </svg>
+                        Refresh Table
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Merchant ID (MID)</th>
+                                <th>Device Serial (SN)</th>
+                                <th>Merchant Name / Store</th>
+                                <th>MQTT Push Topic</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mappings-table-body">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-secondary);">Loading registered devices...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Terminal Live Logs -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
+                        </svg>
+                        Live Transaction Console Logs
+                    </h2>
+                    <button class="btn btn-outline btn-sm" onclick="clearConsole()">Clear Console</button>
+                </div>
+                <div class="terminal" id="terminal-body">
+                    <div class="terminal-line"><span class="terminal-time">[17:05:00]</span><span class="terminal-tag-sys">[SYS]</span> Web Console Ready. Standing by for API calls...</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Visual Soundbox Simulator -->
+        <div>
+            <div class="panel soundbox-wrapper">
+                <div class="panel-header" style="width: 100%; margin-bottom: 0;">
+                    <h2 class="panel-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+                        </svg>
+                        Virtual Q161Pro Device
+                    </h2>
+                </div>
+
+                <!-- Visual soundbox device -->
+                <div class="soundbox-case" id="soundbox-case">
+                    <!-- LED status -->
+                    <div class="soundbox-led active" id="device-led"></div>
+
+                    <!-- Brand label -->
+                    <div class="soundbox-logo">AISINO Q161PRO</div>
+
+                    <!-- Screen -->
+                    <div class="soundbox-screen">
+                        <div class="screen-line-1" id="scr-line1">MTB SOUNDBOX</div>
+                        <div class="screen-line-2" id="scr-line2">Ready...</div>
+                    </div>
+
+                    <!-- Speaker Grill -->
+                    <div class="soundbox-grill"></div>
+
+                    <!-- QR Code Sticker -->
+                    <div class="soundbox-qr-sticker">
+                        <div class="soundbox-qr-img"></div>
+                    </div>
+                </div>
+
+                <!-- Simulation Settings / Device Specs Info -->
+                <div class="device-info-badge">
+                    <div class="device-info-row">
+                        <span class="device-info-label">Active SN:</span>
+                        <span class="device-info-val text-mono" id="simulated-sn">161P12345678</span>
+                    </div>
+                    <div class="device-info-row">
+                        <span class="device-info-label">State:</span>
+                        <span class="device-info-val" style="color: var(--accent);" id="simulated-state">Idle / Connected</span>
+                    </div>
+                    <div style="margin-top: 0.5rem; text-align: center;">
+                        <span style="color: var(--text-secondary); font-size: 0.65rem;">
+                            When you trigger a payment callback targeting the mapping of this serial number, the virtual device screen changes and reads the payment aloud using browser audio.
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Alerts -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script>
+        // Global State variables
+        let serverStatus = { online: false, database: 'local', mqtt_broker: '' };
+        let activeMappings = [];
+
+        // Elements lookup
+        const mappingsTableBody = document.getElementById('mappings-table-body');
+        const terminalBody = document.getElementById('terminal-body');
+        
+        // Connect UI Elements
+        const serverIndicator = document.getElementById('server-indicator-dot');
+        const serverLabel = document.getElementById('server-label');
+        const brokerIndicator = document.getElementById('broker-indicator-dot');
+        const brokerLabel = document.getElementById('broker-label');
+        const dbTypeLabel = document.getElementById('db-type-label');
+
+        // Form Event Listeners
+        document.getElementById('mapping-form').addEventListener('submit', handleMappingSubmit);
+        document.getElementById('webhook-form').addEventListener('submit', handleWebhookSubmit);
+
+        // Init
+        window.addEventListener('DOMContentLoaded', () => {
+            checkServerStatus();
+            fetchMappings();
+            // Poll for status every 10 seconds
+            setInterval(checkServerStatus, 10000);
+            
+            // Set initial dynamic time fields in simulation fields
+            const now = new Date();
+            document.getElementById('sim-invoice').value = Math.floor(100000 + Math.random() * 900000);
+            document.getElementById('sim-rrn').value = Math.floor(100000000000 + Math.random() * 900000000000);
+            document.getElementById('sim-card').value = '1234-56xx-xxxx-' + Math.floor(1000 + Math.random() * 9000);
+            
+            // Pre-fill with a default MID
+            document.getElementById('sim-mid').value = '102000000000040';
+            document.getElementById('sim-amount').value = '250.00';
+        });
+
+        // Apply a preset payload
+        function applyPreset(amount, mid) {
+            document.getElementById('sim-amount').value = amount;
+            document.getElementById('sim-mid').value = mid;
+            document.getElementById('sim-invoice').value = Math.floor(100000 + Math.random() * 900000);
+            document.getElementById('sim-rrn').value = Math.floor(100000000000 + Math.random() * 900000000000);
+            document.getElementById('sim-card').value = '4524-78xx-xxxx-' + Math.floor(1000 + Math.random() * 9000);
+            
+            showToast('Preset loaded! Hit "Trigger Callback Webhook" to send.', 'success');
+            logConsole('sys', `Loaded webhook preset: ${amount} BDT for MID ${mid}`);
+        }
+
+        // Show Toast Notification
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            
+            const iconSvg = type === 'success' ? 
+                `<svg class="toast-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>` :
+                `<svg class="toast-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
+            
+            toast.innerHTML = `
+                ${iconSvg}
+                <div>${message}</div>
+            `;
+            
+            container.appendChild(toast);
+            
+            // Trigger animation
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            // Auto remove
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // Write log to virtual console
+        function logConsole(tag, message) {
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0];
+            
+            let tagSpan = '';
+            if (tag === 'sys') tagSpan = `<span class="terminal-tag-sys">[SYS]</span>`;
+            else if (tag === 'in') tagSpan = `<span class="terminal-tag-in">[API IN]</span>`;
+            else if (tag === 'out') tagSpan = `<span class="terminal-tag-out">[MQTT OUT]</span>`;
+            
+            const line = document.createElement('div');
+            line.className = 'terminal-line';
+            line.innerHTML = `<span class="terminal-time">[${timeStr}]</span>${tagSpan} ${message}`;
+            
+            terminalBody.appendChild(line);
+            terminalBody.scrollTop = terminalBody.scrollHeight;
+        }
+
+        function clearConsole() {
+            terminalBody.innerHTML = '';
+            logConsole('sys', 'Console logs cleared.');
+        }
+
+        // Server check API
+        async function checkServerStatus() {
+            try {
+                const response = await fetch('/api/status');
+                if (!response.ok) throw new Error('API down');
+                
+                const data = await response.json();
+                serverStatus.online = true;
+                serverStatus.database = data.database;
+                serverStatus.mqtt_broker = data.mqtt_broker;
+
+                // Update Server UI Badge
+                serverIndicator.className = 'status-dot online';
+                serverLabel.textContent = 'API Gateway: Online';
+
+                // Update Database Badge
+                dbTypeLabel.className = `badge-type badge-${data.database}`;
+                dbTypeLabel.textContent = data.database.toUpperCase();
+
+                // Update MQTT Badge
+                brokerIndicator.className = 'status-dot online';
+                // Crop broker schema for UI
+                const cleanBroker = data.mqtt_broker.replace('mqtt://', '').replace('mqtts://', '');
+                brokerLabel.textContent = `Broker: ${cleanBroker}`;
+
+            } catch (err) {
+                serverStatus.online = false;
+                serverIndicator.className = 'status-dot offline';
+                serverLabel.textContent = 'API Gateway: Offline';
+                brokerIndicator.className = 'status-dot offline';
+                brokerLabel.textContent = 'Broker: Disconnected';
+                dbTypeLabel.className = 'badge-type badge-local';
+                dbTypeLabel.textContent = 'DISCONNECTED';
+                
+                logConsole('sys', `Server connection heartbeat failed: ${err.message}`);
+            }
+        }
+
+        // Get mappings API
+        async function fetchMappings() {
+            try {
+                const response = await fetch('/api/mappings');
+                if (!response.ok) throw new Error('Failed to fetch mappings');
+                const list = await response.json();
+                activeMappings = list;
+                
+                // Repopulate UI Table
+                mappingsTableBody.innerHTML = '';
+                if (list.length === 0) {
+                    mappingsTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">No mappings found. Register a device.</td></tr>';
+                    return;
+                }
+
+                list.forEach(item => {
+                    const row = document.createElement('tr');
+                    
+                    // Highlight first matching SN for virtual device sync
+                    const activeSn = document.getElementById('simulated-sn').textContent;
+                    const isSelectedDevice = (item.sn === activeSn) ? 'style="border-left: 3px solid var(--accent);"' : '';
+
+                    row.innerHTML = `
+                        <td ${isSelectedDevice} class="text-mono">${item.mid}</td>
+                        <td><span class="text-mono" style="cursor: pointer; text-decoration: underline;" onclick="syncVirtualDevice('${item.sn}')">${item.sn}</span></td>
+                        <td>${item.merchant_name || 'N/A'}</td>
+                        <td class="text-mono">topic_${item.sn}</td>
+                        <td>
+                            <div style="display:flex; gap:0.5rem;">
+                                <button class="btn btn-outline btn-sm" onclick="syncVirtualDevice('${item.sn}')">Load to Mock</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteMapping('${item.mid}')">Delete</button>
+                            </div>
+                        </td>
+                    `;
+                    mappingsTableBody.appendChild(row);
+                });
+
+                logConsole('sys', `Loaded ${list.length} mappings from db.`);
+            } catch (err) {
+                mappingsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger);">Error: ${err.message}</td></tr>`;
+            }
+        }
+
+        // Load targeted device into the simulator
+        function syncVirtualDevice(sn) {
+            document.getElementById('simulated-sn').textContent = sn;
+            // Lookup MID for this SN to make webhook trigger easy
+            const mapping = activeMappings.find(m => m.sn === sn);
+            if (mapping) {
+                document.getElementById('sim-mid').value = mapping.mid;
+                document.getElementById('scr-line1').textContent = mapping.merchant_name.substring(0, 16).toUpperCase();
+                document.getElementById('scr-line2').textContent = 'Ready...';
+                logConsole('sys', `Virtual Soundbox synced with SN: ${sn} (${mapping.merchant_name})`);
+                showToast(`Virtual device set to SN: ${sn}`, 'success');
+            } else {
+                document.getElementById('simulated-sn').textContent = sn;
+                document.getElementById('scr-line1').textContent = 'MTB SOUNDBOX';
+                document.getElementById('scr-line2').textContent = 'Ready...';
+                logConsole('sys', `Virtual Soundbox synced with unmapped SN: ${sn}`);
+            }
+        }
+
+        // Create/Update mapping
+        async function handleMappingSubmit(e) {
+            e.preventDefault();
+            const mid = document.getElementById('mid-input').value.trim();
+            const sn = document.getElementById('sn-input').value.trim();
+            const merchant_name = document.getElementById('merchant-name-input').value.trim();
+
+            if (!mid || !sn) {
+                showToast('MID and SN are required', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/mappings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mid, sn, merchant_name })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Failed to update database');
+
+                showToast(`Merchant successfully registered: ${mid} -> ${sn}`, 'success');
+                logConsole('sys', `Created Mapping: MID [${mid}] <==> SN [${sn}]`);
+                
+                // Clear inputs
+                document.getElementById('mid-input').value = '';
+                document.getElementById('sn-input').value = '';
+                document.getElementById('merchant-name-input').value = '';
+                
+                // Sync table and load this device
+                await fetchMappings();
+                syncVirtualDevice(sn);
+
+            } catch (err) {
+                showToast(err.message, 'error');
+                logConsole('sys', `Registration error: ${err.message}`);
+            }
+        }
+
+        // Delete mapping API
+        async function deleteMapping(mid) {
+            if (!confirm(`Are you sure you want to delete the mapping for Merchant ID: ${mid}?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/mappings/${mid}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Failed to delete');
+
+                showToast(`Mapping for ${mid} deleted`, 'success');
+                logConsole('sys', `Deleted mapping for MID: ${mid}`);
+                fetchMappings();
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        // Submit webhook simulation
+        async function handleWebhookSubmit(e) {
+            e.preventDefault();
+            const mid = document.getElementById('sim-mid').value.trim();
+            const amount = parseFloat(document.getElementById('sim-amount').value).toFixed(2);
+            const invoice = document.getElementById('sim-invoice').value.trim();
+            const rrn = document.getElementById('sim-rrn').value.trim();
+            const card_number = document.getElementById('sim-card').value.trim();
+
+            logConsole('in', `HTTP POST callback incoming for Merchant MID: ${mid} | Amount: BDT ${amount}`);
+
+            try {
+                const response = await fetch('/api/payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mid,
+                        amount,
+                        invoice,
+                        rrn,
+                        card_number,
+                        time: new Date().toISOString()
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || `Server responded with ${response.status}`);
+                }
+
+                showToast(`Webhook simulation processed!`, 'success');
+                logConsole('sys', `API status: 200 OK. Resolved Target SN: ${data.target_device_sn}`);
+                logConsole('out', `MQTT Broker published payload to topic: ${data.topic}`);
+
+                // Check if target device matches current simulated mock soundbox
+                const currentSimSn = document.getElementById('simulated-sn').textContent;
+                if (data.target_device_sn === currentSimSn) {
+                    triggerVirtualPaymentReceipt(amount, invoice);
+                } else {
+                    logConsole('sys', `Push sent, but targets a different serial number: ${data.target_device_sn} (Current Mock SN is ${currentSimSn})`);
+                }
+
+            } catch (err) {
+                showToast(`Simulation failed: ${err.message}`, 'error');
+                logConsole('sys', `API error: ${err.message}`);
+            }
+        }
+
+        // Simulate voice broadcast and screen flash on Virtual device mockup
+        function triggerVirtualPaymentReceipt(amount, invoice) {
+            const led = document.getElementById('device-led');
+            const stateLabel = document.getElementById('simulated-state');
+            const scrLine1 = document.getElementById('scr-line1');
+            const scrLine2 = document.getElementById('scr-line2');
+            const boxCase = document.getElementById('soundbox-case');
+
+            // Set state to receiving
+            stateLabel.textContent = 'RECEIVING PAYROLL';
+            stateLabel.style.color = 'var(--primary)';
+            led.className = 'soundbox-led receiving';
+            
+            // Screen display animation
+            scrLine1.textContent = 'SUCCESSFUL PAY';
+            scrLine2.textContent = `৳ ${amount}`;
+            
+            // Add pulse effect to device case
+            boxCase.style.transform = 'scale(1.03)';
+            boxCase.style.boxShadow = '0 30px 60px -10px rgba(59, 130, 246, 0.4)';
+            
+            // Voice Output: Browser TTS Speech Synthesis
+            if ('speechSynthesis' in window) {
+                // Cancel ongoing speeches
+                window.speechSynthesis.cancel();
+                
+                // Read text aloud: "Received [Amount] Taka"
+                // Using clean default voice, setting language preference
+                const msgText = `Received ${amount} Taka`;
+                const speech = new SpeechSynthesisUtterance(msgText);
+                speech.rate = 0.95;
+                speech.pitch = 1.1;
+                speech.volume = 1.0;
+                
+                // Optional: Attempt to find a natural English/Bangla voice if installed
+                const voices = window.speechSynthesis.getVoices();
+                const preferredVoice = voices.find(v => v.lang.includes('bn-BD') || v.lang.includes('en-IN') || v.lang.includes('en-US'));
+                if (preferredVoice) {
+                    speech.voice = preferredVoice;
+                }
+                
+                window.speechSynthesis.speak(speech);
+            }
+
+            // Restore state after 3.5 seconds
+            setTimeout(() => {
+                led.className = 'soundbox-led active';
+                stateLabel.textContent = 'Idle / Connected';
+                stateLabel.style.color = 'var(--accent)';
+                boxCase.style.transform = 'none';
+                boxCase.style.boxShadow = 'var(--card-shadow)';
+                
+                // Lookup current merchant name for default screen text
+                const currentSimSn = document.getElementById('simulated-sn').textContent;
+                const mapping = activeMappings.find(m => m.sn === currentSimSn);
+                scrLine1.textContent = mapping ? mapping.merchant_name.substring(0, 16).toUpperCase() : 'MTB SOUNDBOX';
+                scrLine2.textContent = 'Ready...';
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
