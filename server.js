@@ -18,7 +18,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 const PORT = process.env.PORT || 3000;
-const MQTT_BROKER = process.env.MQTT_BROKER || 'mqtt://broker.emqx.io:1883';
+const MQTT_BROKER = process.env.MQTT_BROKER || 'mqtt://115.159.28.147:1883';
 const MQTT_USERNAME = process.env.MQTT_USERNAME || '';
 const MQTT_PASSWORD = process.env.MQTT_PASSWORD || '';
 const LOCAL_DB_PATH = path.join(__dirname, 'local_db.json');
@@ -60,6 +60,8 @@ if (fs.existsSync(serviceAccountPath)) {
     }
 }
 
+const TRANSACTIONS_PATH = path.join(__dirname, 'transactions_db.json');
+
 if (dbType === 'local') {
     console.warn('⚠️ WARNING: Firebase credentials not found.');
     console.warn('⚠️ Falling back to local JSON database (local_db.json) for development.');
@@ -74,6 +76,60 @@ if (dbType === 'local') {
                 "updated_at": new Date().toISOString()
             }
         }, null, 2));
+    }
+
+    // Initialize transactions database file if not exists
+    if (!fs.existsSync(TRANSACTIONS_PATH)) {
+        fs.writeFileSync(TRANSACTIONS_PATH, JSON.stringify([], null, 2));
+    }
+}
+
+function readTransactionsDb() {
+    try {
+        if (!fs.existsSync(TRANSACTIONS_PATH)) {
+            return [];
+        }
+        const data = fs.readFileSync(TRANSACTIONS_PATH, 'utf8');
+        return JSON.parse(data);
+    } catch (err) {
+        return [];
+    }
+}
+
+function writeTransactionsDb(data) {
+    fs.writeFileSync(TRANSACTIONS_PATH, JSON.stringify(data, null, 2));
+}
+
+async function recordTransaction(tx) {
+    if (dbType === 'firebase') {
+        try {
+            await db.collection('transactions').add(tx);
+        } catch (err) {
+            console.error('Failed to write transaction to Firebase:', err.message);
+        }
+    } else {
+        const txs = readTransactionsDb();
+        txs.unshift(tx);
+        if (txs.length > 500) txs.pop();
+        writeTransactionsDb(txs);
+    }
+}
+
+async function getAllTransactions() {
+    if (dbType === 'firebase') {
+        try {
+            const snapshot = await db.collection('transactions').orderBy('time', 'desc').limit(100).get();
+            const list = [];
+            snapshot.forEach(doc => {
+                list.push(doc.data());
+            });
+            return list;
+        } catch (err) {
+            console.error('Failed to read transactions from Firebase:', err.message);
+            return [];
+        }
+    } else {
+        return readTransactionsDb();
     }
 }
 
@@ -91,16 +147,20 @@ function writeLocalDb(data) {
     fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(data, null, 2));
 }
 
-async function getDeviceSNByMID(mid) {
+async function getMappingByMID(mid) {
     if (dbType === 'firebase') {
-        const doc = await db.collection('mappings').doc(mid).get();
-        if (doc.exists) {
-            return doc.data().sn;
+        try {
+            const doc = await db.collection('mappings').doc(mid).get();
+            if (doc.exists) {
+                return doc.data();
+            }
+        } catch (err) {
+            console.error('Failed to get mapping from Firebase:', err.message);
         }
         return null;
     } else {
         const localDb = readLocalDb();
-        return localDb[mid] ? localDb[mid].sn : null;
+        return localDb[mid] ? localDb[mid] : null;
     }
 }
 
@@ -190,12 +250,29 @@ app.post('/api/payment', async (req, res) => {
 
     try {
         // Step 1: Look up Device Serial Number (SN) mapped to the Merchant ID (MID)
-        const sn = await getDeviceSNByMID(mid);
-        if (!sn) {
+        const mapping = await getMappingByMID(mid);
+        if (!mapping) {
             console.warn(`[API WARNING] No registered Q161Pro device found mapping to MID: ${mid}`);
+            
+            // Record failed transaction attempt
+            const tx = {
+                mid,
+                merchant_name: 'Unknown Merchant',
+                sn: 'N/A',
+                amount: parseFloat(amount).toFixed(2),
+                invoice: invoice || '000000',
+                rrn: rrn || '000000000000',
+                card_number: card_number || 'N/A',
+                time: time || new Date().toISOString(),
+                status: 'failed'
+            };
+            await recordTransaction(tx);
+            
             return res.status(404).json({ error: `No registered device found for Merchant ID ${mid}` });
         }
 
+        const sn = mapping.sn;
+        const merchant_name = mapping.merchant_name || 'N/A';
         console.log(`[API Lookup Success] MID ${mid} maps to Device SN: ${sn}`);
 
         // Step 2: Publish notification payload via MQTT to topic_{sn}
@@ -206,13 +283,28 @@ app.post('/api/payment', async (req, res) => {
             rrn: rrn || '000000000000'
         });
 
-        mqttClient.publish(topic, payload, { qos: 0 }, (err) => {
+        mqttClient.publish(topic, payload, { qos: 0 }, async (err) => {
             if (err) {
                 console.error(`[MQTT Publish Error] Failed to publish message to ${topic}:`, err.message);
                 return res.status(500).json({ error: 'Failed to publish message to MQTT broker' });
             }
 
             console.log(`[MQTT Publish Success] Sent payload to topic [${topic}]: ${payload}`);
+            
+            // Record successful transaction
+            const tx = {
+                mid,
+                merchant_name,
+                sn,
+                amount: parseFloat(amount).toFixed(2),
+                invoice: invoice || '000000',
+                rrn: rrn || '000000000000',
+                card_number: card_number || 'N/A',
+                time: time || new Date().toISOString(),
+                status: 'success'
+            };
+            await recordTransaction(tx);
+
             return res.json({
                 success: true,
                 message: 'Notification pushed successfully to soundbox device',
@@ -224,6 +316,16 @@ app.post('/api/payment', async (req, res) => {
     } catch (err) {
         console.error('Internal API error:', err.message);
         res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+
+// Transaction History API
+app.get('/api/transactions', async (req, res) => {
+    try {
+        const list = await getAllTransactions();
+        res.json(list);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -250,6 +352,28 @@ app.post('/api/mappings', async (req, res) => {
     }
 });
 
+// Batch Upload Mappings (from Excel/CSV)
+app.post('/api/mappings/batch', async (req, res) => {
+    const { mappings } = req.body;
+    if (!mappings || !Array.isArray(mappings)) {
+        return res.status(400).json({ error: 'mappings array is required' });
+    }
+
+    try {
+        const list = [];
+        for (const item of mappings) {
+            const { mid, sn, merchant_name } = item;
+            if (mid && sn) {
+                const mapping = await setMapping(mid.toString().trim(), sn.toString().trim(), merchant_name ? merchant_name.toString().trim() : 'N/A');
+                list.push(mapping);
+            }
+        }
+        res.json({ success: true, count: list.length, mappings: list });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 app.delete('/api/mappings/:mid', async (req, res) => {
     const { mid } = req.params;
     try {
@@ -267,3 +391,6 @@ app.listen(PORT, () => {
     console.log(` Server mode: ${dbType.toUpperCase()}`);
     console.log(`==================================================`);
 });
+
+module.exports = app;
+

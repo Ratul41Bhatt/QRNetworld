@@ -3,31 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MTB Soundbox - Admin & Simulator Console</title>
+    <title>MTB Soundbox - Enterprise Admin & Simulator Console</title>
     <!-- Google Fonts: Inter & JetBrains Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- SheetJS (Excel Parsing and Writing) -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <!-- Chart.js (Analytics Line Chart) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
         :root {
-            --bg-primary: #0a0f1d;
-            --bg-surface: rgba(16, 22, 42, 0.7);
-            --bg-surface-opaque: #10162a;
-            --border-color: rgba(255, 255, 255, 0.08);
+            --bg-primary: #020617;
+            --bg-glass-card: rgba(15, 23, 42, 0.45);
+            --bg-glass-card-hover: rgba(30, 41, 59, 0.55);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --border-glass-hover: rgba(255, 255, 255, 0.16);
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
-            --primary: #3b82f6;
-            --primary-hover: #2563eb;
-            --primary-glow: rgba(59, 130, 246, 0.35);
-            --accent: #10b981;
-            --accent-glow: rgba(16, 185, 129, 0.25);
-            --danger: #ef4444;
-            --danger-hover: #dc2626;
-            --danger-glow: rgba(239, 68, 68, 0.25);
-            --warning: #f59e0b;
+            --primary: #0071e3;
+            --primary-glow: rgba(0, 113, 227, 0.35);
+            --accent: #34c759;
+            --accent-glow: rgba(52, 199, 89, 0.25);
+            --danger: #ff3b30;
+            --danger-glow: rgba(255, 59, 48, 0.25);
+            --warning: #ff9500;
             --terminal-bg: #05070f;
-            --card-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --font-mono: 'JetBrains Mono', monospace;
         }
 
         * {
@@ -42,77 +45,138 @@
             color: var(--text-primary);
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
+            overflow: hidden;
             background-image: 
-                radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.05) 0%, transparent 45%);
+                radial-gradient(circle at 10% 20%, rgba(0, 113, 227, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(147, 51, 234, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 50% 50%, rgba(52, 199, 89, 0.06) 0%, transparent 50%);
             background-attachment: fixed;
         }
 
-        header {
-            background-color: rgba(10, 15, 29, 0.8);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1.25rem 2rem;
+        /* Nav Sidebar styling */
+        .sidebar {
+            width: 280px;
+            background: rgba(15, 23, 42, 0.35);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border-right: 1px solid var(--border-glass);
             display: flex;
+            flex-direction: column;
             justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
+            padding: 2rem 1.5rem;
             z-index: 100;
+            flex-shrink: 0;
         }
 
-        .logo-container {
+        .sidebar-brand {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.85rem;
+            margin-bottom: 3rem;
+            text-decoration: none;
         }
 
-        .logo-icon {
-            width: 2.25rem;
-            height: 2.25rem;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            border-radius: 0.5rem;
+        .brand-logo {
+            width: 2.5rem;
+            height: 2.5rem;
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            border-radius: 0.75rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
-            font-size: 1.25rem;
-            box-shadow: 0 0 15px var(--primary-glow);
+            font-weight: 800;
+            font-size: 1.35rem;
+            color: white;
+            box-shadow: 0 4px 15px var(--primary-glow);
         }
 
-        .logo-text h1 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            letter-spacing: -0.025em;
-            background: linear-gradient(to right, #ffffff, #94a3b8);
+        .brand-text h1 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(to right, #ffffff, #cbd5e1);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .logo-text p {
-            font-size: 0.75rem;
+        .brand-text p {
+            font-size: 0.7rem;
             color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.85rem 1.25rem;
+            border-radius: 0.75rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+
+        .menu-item svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-item:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.03);
+        }
+
+        .menu-item:hover svg {
+            transform: translateX(2px);
+        }
+
+        .menu-item.active {
+            color: white;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+            border: 1px solid var(--border-glass-hover);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .menu-item.active svg {
+            color: var(--primary);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            border-top: 1px solid var(--border-glass);
+            padding-top: 1.5rem;
+        }
+
+        .connection-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-glass);
+            border-radius: 0.75rem;
+            padding: 0.85rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            font-size: 0.75rem;
         }
 
         .connection-status {
             display: flex;
             align-items: center;
-            gap: 1.5rem;
-        }
-
-        .status-badge {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border-color);
-            padding: 0.375rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 500;
+            justify-content: space-between;
         }
 
         .status-dot {
@@ -120,315 +184,418 @@
             height: 8px;
             border-radius: 50%;
             background-color: var(--text-secondary);
-            display: inline-block;
         }
 
         .status-dot.online {
             background-color: var(--accent);
-            box-shadow: 0 0 8px var(--accent-glow);
-            animation: pulse 2s infinite;
+            box-shadow: 0 0 10px var(--accent-glow);
         }
 
         .status-dot.offline {
             background-color: var(--danger);
-            box-shadow: 0 0 8px var(--danger-glow);
+            box-shadow: 0 0 10px var(--danger-glow);
         }
 
-        @keyframes pulse {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
+        .badge-type {
+            font-size: 0.6rem;
+            font-weight: 800;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .badge-firebase {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .badge-local {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+            border: 1px solid rgba(59, 130, 246, 0.3);
         }
 
-        main {
+        /* Main view wrapper */
+        .content-area {
             flex: 1;
-            padding: 2rem;
-            max-width: 1400px;
-            margin: 0 auto;
-            width: 100%;
-            display: grid;
-            grid-template-columns: 1fr 380px;
-            gap: 2rem;
-        }
-
-        @media (max-width: 1024px) {
-            main {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .dashboard-content {
             display: flex;
             flex-direction: column;
-            gap: 2rem;
+            overflow: hidden;
         }
 
-        .dashboard-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-        }
-
-        @media (max-width: 768px) {
-            .dashboard-row {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Glassmorphic Panel styling */
-        .panel {
-            background-color: var(--bg-surface);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--border-color);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            box-shadow: var(--card-shadow);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .panel:hover {
-            box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.45);
-        }
-
-        .panel-header {
+        /* Glassmorphic Navbar */
+        .navbar {
+            height: 80px;
+            border-bottom: 1px solid var(--border-glass);
+            background: rgba(10, 15, 29, 0.3);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 0 2.5rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.25rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.75rem;
+            z-index: 90;
+        }
+
+        .navbar-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -0.01em;
+        }
+
+        .navbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .user-avatar {
+            width: 2.25rem;
+            height: 2.25rem;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-glass);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Dashboard Pages Grid */
+        .page-view {
+            display: none;
+            flex: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+        }
+
+        .page-view.active {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Glass Panel Container */
+        .glass-panel {
+            background: var(--bg-glass-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-glass);
+            border-radius: 1.25rem;
+            padding: 2rem;
+            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+        }
+
+        .glass-panel:hover {
+            border-color: var(--border-glass-hover);
+            box-shadow: 0 15px 50px -10px rgba(0, 0, 0, 0.5);
         }
 
         .panel-title {
-            font-size: 1rem;
-            font-weight: 600;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            color: #ffffff;
+            gap: 0.65rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 0.85rem;
         }
 
         .panel-title svg {
+            width: 1.35rem;
+            height: 1.35rem;
             color: var(--primary);
-            width: 1.25rem;
-            height: 1.25rem;
         }
 
-        /* Forms styling */
+        /* Forms inputs */
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.25rem;
+        }
+
         .form-group {
-            margin-bottom: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
         }
 
         .form-group label {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: 600;
+            font-size: 0.72rem;
+            font-weight: 700;
             color: var(--text-secondary);
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
         }
 
         .form-control {
             width: 100%;
-            background-color: rgba(5, 7, 15, 0.6);
-            border: 1px solid var(--border-color);
-            border-radius: 0.5rem;
-            padding: 0.625rem 0.875rem;
-            color: var(--text-primary);
+            background: rgba(5, 7, 15, 0.4);
+            border: 1px solid var(--border-glass);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            color: white;
             font-family: inherit;
-            font-size: 0.875rem;
-            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .form-control:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 2px var(--primary-glow);
-            background-color: rgba(5, 7, 15, 0.9);
+            background: rgba(5, 7, 15, 0.85);
         }
 
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-
-        .btn {
+        /* Premium Morphic Buttons */
+        .btn-morphic {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
-            padding: 0.625rem 1.25rem;
-            border-radius: 0.5rem;
+            gap: 0.65rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
             font-size: 0.875rem;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.2s ease;
-            border: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             text-decoration: none;
-        }
-
-        .btn-primary {
-            background-color: var(--primary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
             color: white;
-            box-shadow: 0 4px 12px var(--primary-glow);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(8px);
         }
 
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px var(--primary-glow);
+        .btn-morphic:hover {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1.5px);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.05);
         }
 
-        .btn-danger {
-            background-color: var(--danger);
-            color: white;
-            box-shadow: 0 4px 12px var(--danger-glow);
+        .btn-morphic:active {
+            transform: translateY(0);
         }
 
-        .btn-danger:hover {
-            background-color: var(--danger-hover);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 16px var(--danger-glow);
+        .btn-morphic-primary {
+            background: linear-gradient(135deg, rgba(0, 113, 227, 0.6) 0%, rgba(0, 113, 227, 0.25) 100%);
+            border: 1px solid rgba(0, 113, 227, 0.5);
+            box-shadow: 0 4px 20px rgba(0, 113, 227, 0.2);
         }
 
-        .btn-outline {
-            background-color: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
+        .btn-morphic-primary:hover {
+            background: linear-gradient(135deg, rgba(0, 113, 227, 0.8) 0%, rgba(0, 113, 227, 0.35) 100%);
+            border-color: var(--primary);
+            box-shadow: 0 8px 25px rgba(0, 113, 227, 0.4);
         }
 
-        .btn-outline:hover {
-            background-color: rgba(255, 255, 255, 0.05);
-            border-color: var(--text-secondary);
+        .btn-morphic-danger {
+            background: linear-gradient(135deg, rgba(255, 59, 48, 0.6) 0%, rgba(255, 59, 48, 0.25) 100%);
+            border: 1px solid rgba(255, 59, 48, 0.5);
+            box-shadow: 0 4px 20px rgba(255, 59, 48, 0.2);
         }
 
-        .btn-sm {
-            padding: 0.375rem 0.75rem;
-            font-size: 0.75rem;
-            border-radius: 0.375rem;
+        .btn-morphic-danger:hover {
+            background: linear-gradient(135deg, rgba(255, 59, 48, 0.8) 0%, rgba(255, 59, 48, 0.35) 100%);
+            border-color: var(--danger);
+            box-shadow: 0 8px 25px rgba(255, 59, 48, 0.4);
         }
 
-        .btn-block {
-            display: flex;
-            width: 100%;
+        .btn-morphic-success {
+            background: linear-gradient(135deg, rgba(52, 199, 89, 0.6) 0%, rgba(52, 199, 89, 0.25) 100%);
+            border: 1px solid rgba(52, 199, 89, 0.5);
+            box-shadow: 0 4px 20px rgba(52, 199, 89, 0.2);
         }
 
-        /* Mapping Table styling */
-        .table-container {
+        .btn-morphic-success:hover {
+            background: linear-gradient(135deg, rgba(52, 199, 89, 0.8) 0%, rgba(52, 199, 89, 0.35) 100%);
+            border-color: var(--accent);
+            box-shadow: 0 8px 25px rgba(52, 199, 89, 0.4);
+        }
+
+        .btn-morphic-sm {
+            padding: 0.45rem 1rem;
+            font-size: 0.78rem;
+            border-radius: 0.5rem;
+        }
+
+        /* Mappings & Reports table styling */
+        .table-responsive {
             overflow-x: auto;
-            max-height: 350px;
-            overflow-y: auto;
+            width: 100%;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
-            font-size: 0.875rem;
         }
 
         th {
-            background-color: rgba(5, 7, 15, 0.4);
+            background: rgba(5, 7, 15, 0.5);
             color: var(--text-secondary);
-            font-weight: 600;
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid var(--border-color);
+            font-weight: 700;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-glass);
             text-transform: uppercase;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             letter-spacing: 0.05em;
-            position: sticky;
-            top: 0;
-            z-index: 10;
         }
 
         td {
-            padding: 0.75rem 1rem;
+            padding: 1rem 1.25rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            font-size: 0.88rem;
             color: var(--text-primary);
         }
 
         tr:hover td {
-            background-color: rgba(255, 255, 255, 0.02);
+            background: rgba(255, 255, 255, 0.015);
         }
 
         .text-mono {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            background-color: rgba(255, 255, 255, 0.04);
-            padding: 0.125rem 0.375rem;
-            border-radius: 0.25rem;
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 0.15rem 0.4rem;
+            border-radius: 6px;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        /* Live Console/Logs Section */
-        .terminal {
-            background-color: var(--terminal-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 0.5rem;
-            padding: 1rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.8rem;
-            color: #38bdf8;
-            max-height: 250px;
-            overflow-y: auto;
-            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8);
+        /* KPI Card grids */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .kpi-card {
+            background: var(--bg-glass-card);
+            border: 1px solid var(--border-glass);
+            border-radius: 1.25rem;
+            padding: 1.5rem;
             display: flex;
             flex-direction: column;
-            gap: 0.375rem;
-        }
-
-        .terminal-line {
-            line-height: 1.4;
-            word-break: break-all;
-        }
-
-        .terminal-time {
-            color: #64748b;
-            margin-right: 0.5rem;
-        }
-
-        .terminal-tag-in {
-            color: #4ade80;
-            font-weight: 500;
-        }
-
-        .terminal-tag-out {
-            color: #f43f5e;
-            font-weight: 500;
-        }
-
-        .terminal-tag-sys {
-            color: #a855f7;
-            font-weight: 500;
-        }
-
-        .quick-presets {
-            display: flex;
             gap: 0.5rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
         }
 
-        /* Soundbox Visualizer styling */
+        .kpi-title {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .kpi-value {
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: white;
+        }
+
+        .kpi-sub {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Excel Upload Dropzone */
+        .upload-dropzone {
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            border-radius: 1rem;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            background: rgba(0, 113, 227, 0.01);
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-dropzone:hover {
+            border-color: var(--primary);
+            background: rgba(0, 113, 227, 0.04);
+        }
+
+        .upload-dropzone svg {
+            width: 3rem;
+            height: 3rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+        }
+
+        .upload-dropzone:hover svg {
+            transform: translateY(-3px);
+            color: var(--primary);
+        }
+
+        .upload-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .upload-sub {
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+        }
+
+        /* Interactive Simulator Layout */
+        .simulator-layout {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 2.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .simulator-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .simulator-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Virtual Device Visualizer */
         .soundbox-wrapper {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
             align-items: center;
         }
 
         .soundbox-case {
-            width: 250px;
-            height: 380px;
+            width: 260px;
+            height: 390px;
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border-radius: 2rem;
+            border-radius: 2.25rem;
             border: 4px solid #334155;
             box-shadow: 
-                0 25px 50px -12px rgba(0, 0, 0, 0.7),
-                0 0 30px rgba(59, 130, 246, 0.15),
+                0 25px 50px -12px rgba(0, 0, 0, 0.8),
+                0 0 35px rgba(0, 113, 227, 0.12),
                 inset 0 2px 4px rgba(255, 255, 255, 0.1);
             position: relative;
             padding: 1.5rem;
@@ -436,9 +603,9 @@
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* Device LED status */
         .soundbox-led {
             width: 10px;
             height: 10px;
@@ -452,38 +619,36 @@
         }
 
         .soundbox-led.active {
-            background-color: #10b981;
-            box-shadow: 0 0 12px #10b981, inset 0 1px 2px rgba(255, 255, 255, 0.5);
+            background-color: var(--accent);
+            box-shadow: 0 0 12px var(--accent), inset 0 1px 2px rgba(255, 255, 255, 0.5);
         }
 
         .soundbox-led.receiving {
-            background-color: #3b82f6;
-            box-shadow: 0 0 15px #3b82f6, inset 0 1px 2px rgba(255, 255, 255, 0.5);
+            background-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary), inset 0 1px 2px rgba(255, 255, 255, 0.5);
             animation: pulse 0.5s infinite;
         }
 
-        /* Speaker grill */
-        .soundbox-grill {
-            width: 100%;
-            height: 110px;
-            background-image: radial-gradient(circle, #020617 30%, transparent 35%);
-            background-size: 6px 6px;
-            opacity: 0.85;
-            border-radius: 1rem;
-            margin-top: 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+        .soundbox-logo {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: #94a3b8;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            margin-top: 0.5rem;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 0.2rem;
         }
 
-        /* Screen display */
         .soundbox-screen {
             width: 100%;
-            height: 80px;
+            height: 85px;
             background-color: #020617;
             border: 2px solid #334155;
-            border-radius: 0.5rem;
-            padding: 0.75rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
+            border-radius: 0.75rem;
+            padding: 0.85rem;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
             color: #22c55e;
             box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.9);
             display: flex;
@@ -497,17 +662,13 @@
             content: '';
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(
-                rgba(18, 16, 16, 0) 50%, 
-                rgba(0, 0, 0, 0.25) 50%
-            );
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
             background-size: 100% 4px;
-            z-index: 2;
             pointer-events: none;
         }
 
         .screen-line-1 {
-            font-weight: bold;
+            font-weight: 700;
             color: #4ade80;
             white-space: nowrap;
             overflow: hidden;
@@ -515,37 +676,35 @@
         }
 
         .screen-line-2 {
-            font-size: 1.15rem;
+            font-size: 1.25rem;
             text-align: right;
-            color: #10b981;
-            font-weight: 700;
-            text-shadow: 0 0 4px var(--accent-glow);
-        }
-
-        /* Soundbox branding info */
-        .soundbox-logo {
-            font-size: 0.75rem;
+            color: var(--accent);
             font-weight: 800;
-            color: #94a3b8;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            margin-top: 0.5rem;
-            border-bottom: 2px solid #3b82f6;
-            padding-bottom: 0.15rem;
+            text-shadow: 0 0 5px rgba(52, 199, 89, 0.3);
         }
 
-        /* Soundbox QR holder visual */
+        .soundbox-grill {
+            width: 100%;
+            height: 110px;
+            background-image: radial-gradient(circle, #020617 30%, transparent 35%);
+            background-size: 6px 6px;
+            opacity: 0.85;
+            border-radius: 1rem;
+            margin-top: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
         .soundbox-qr-sticker {
             width: 110px;
             height: 110px;
             background-color: white;
-            border-radius: 0.5rem;
+            border-radius: 0.75rem;
             padding: 0.5rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            margin-bottom: 0.75rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            margin-bottom: 0.85rem;
             position: relative;
         }
 
@@ -562,43 +721,104 @@
             content: 'SCAN MTB';
             position: absolute;
             bottom: -8px;
-            background-color: #ef4444;
+            background-color: var(--danger);
             color: white;
             font-size: 0.55rem;
             font-weight: 900;
-            padding: 0.1rem 0.4rem;
-            border-radius: 0.25rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            padding: 0.15rem 0.5rem;
+            border-radius: 0.35rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
             white-space: nowrap;
         }
 
-        /* Soundbox interactive controls */
         .device-info-badge {
-            background-color: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--border-color);
-            padding: 0.75rem;
-            border-radius: 0.5rem;
+            background-color: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-glass);
+            padding: 0.85rem;
+            border-radius: 0.75rem;
             width: 100%;
             font-size: 0.75rem;
+            margin-top: 1.5rem;
         }
 
         .device-info-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.35rem;
         }
         .device-info-row:last-child {
             margin-bottom: 0;
         }
-        .device-info-label {
-            color: var(--text-secondary);
-        }
-        .device-info-val {
-            font-weight: 500;
-            color: #ffffff;
+
+        /* Terminal Logging screen */
+        .terminal {
+            background-color: var(--terminal-bg);
+            border: 1px solid var(--border-glass);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: #38bdf8;
+            height: 230px;
+            overflow-y: auto;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
         }
 
-        /* Custom notifications/toasts */
+        .terminal-line {
+            line-height: 1.5;
+            word-break: break-all;
+        }
+
+        .terminal-time {
+            color: #64748b;
+            margin-right: 0.5rem;
+        }
+        .terminal-tag-in {
+            color: var(--accent);
+            font-weight: bold;
+        }
+        .terminal-tag-out {
+            color: var(--danger);
+            font-weight: bold;
+        }
+        .terminal-tag-sys {
+            color: #a855f7;
+            font-weight: bold;
+        }
+
+        .quick-presets {
+            display: flex;
+            gap: 0.65rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        /* Status Badge for Table list */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .status-pill-success {
+            background: rgba(52, 199, 89, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(52, 199, 89, 0.25);
+        }
+        .status-pill-failed {
+            background: rgba(255, 59, 48, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(255, 59, 48, 0.25);
+        }
+
+        /* Toast Alert Container */
         .toast-container {
             position: fixed;
             bottom: 2rem;
@@ -610,20 +830,21 @@
         }
 
         .toast {
-            background-color: #1e293b;
-            border: 1px solid var(--border-color);
-            padding: 1rem 1.25rem;
-            border-radius: 0.5rem;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-glass);
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            color: #ffffff;
-            font-size: 0.875rem;
-            min-width: 300px;
+            color: white;
+            font-size: 0.88rem;
+            min-width: 320px;
             transform: translateY(100px);
             opacity: 0;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .toast.show {
@@ -631,185 +852,407 @@
             opacity: 1;
         }
 
-        .toast-icon {
-            flex-shrink: 0;
-            width: 1.25rem;
-            height: 1.25rem;
+        .toast-success { border-left: 4px solid var(--accent); }
+        .toast-error { border-left: 4px solid var(--danger); }
+        .toast-icon { width: 1.25rem; height: 1.25rem; flex-shrink: 0; }
+        .toast-success .toast-icon { color: var(--accent); }
+        .toast-error .toast-icon { color: var(--danger); }
+
+        /* API docs styling */
+        .doc-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
 
-        .toast-success {
-            border-left: 4px solid var(--accent);
-        }
-        .toast-success .toast-icon {
-            color: var(--accent);
-        }
-
-        .toast-error {
-            border-left: 4px solid var(--danger);
-        }
-        .toast-error .toast-icon {
-            color: var(--danger);
-        }
-
-        .badge-type {
-            font-size: 0.65rem;
+        .doc-section h3 {
+            font-size: 1rem;
             font-weight: 700;
-            padding: 0.125rem 0.375rem;
-            border-radius: 0.25rem;
+            color: white;
+            border-left: 3px solid var(--primary);
+            padding-left: 0.5rem;
+        }
+
+        .doc-method {
+            display: inline-block;
+            font-weight: 800;
+            font-size: 0.72rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
             text-transform: uppercase;
+            margin-right: 0.75rem;
         }
-        .badge-firebase {
-            background-color: rgba(245, 158, 11, 0.2);
-            color: #f59e0b;
-            border: 1px solid rgba(245, 158, 11, 0.3);
+        .method-post {
+            background: rgba(52, 199, 89, 0.2);
+            color: var(--accent);
+            border: 1px solid rgba(52, 199, 89, 0.3);
         }
-        .badge-local {
-            background-color: rgba(59, 130, 246, 0.2);
+        .method-get {
+            background: rgba(0, 113, 227, 0.2);
             color: #3b82f6;
-            border: 1px solid rgba(59, 130, 246, 0.3);
+            border: 1px solid rgba(0, 113, 227, 0.3);
+        }
+
+        .code-block-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0f172a;
+            border: 1px solid var(--border-glass);
+            border-bottom: none;
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.72rem;
+            font-weight: bold;
+            color: var(--text-secondary);
+        }
+
+        .code-block {
+            background: #090d16;
+            border: 1px solid var(--border-glass);
+            border-bottom-left-radius: 0.75rem;
+            border-bottom-right-radius: 0.75rem;
+            padding: 1.25rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            overflow-x: auto;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .copy-btn:hover {
+            color: white;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        /* Search input design */
+        .search-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            gap: 1.5rem;
+        }
+        .search-box {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+        .search-box input {
+            padding-left: 2.5rem;
+        }
+        .search-icon {
+            position: absolute;
+            left: 0.85rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            width: 1.1rem;
+            height: 1.1rem;
+        }
+
+        /* Empty state styling */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1.5rem;
+            color: var(--text-secondary);
+        }
+        .empty-state svg {
+            width: 3.5rem;
+            height: 3.5rem;
+            stroke-width: 1;
+            margin-bottom: 1rem;
+            color: rgba(255,255,255,0.1);
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo-container">
-            <div class="logo-icon">M</div>
-            <div class="logo-text">
-                <h1>MTB Soundbox Console</h1>
-                <p>Mutual Trust Bank Payment Push System</p>
-            </div>
-        </div>
-        <div class="connection-status">
-            <div id="db-badge" class="status-badge">
-                <span>Database:</span>
-                <span id="db-type-label" class="badge-type badge-local">Checking...</span>
-            </div>
-            <div class="status-badge">
-                <span id="broker-indicator-dot" class="status-dot"></span>
-                <span id="broker-label">Broker: Connecting...</span>
-            </div>
-            <div class="status-badge">
-                <span id="server-indicator-dot" class="status-dot"></span>
-                <span id="server-label">API Gateway: Checking...</span>
-            </div>
-        </div>
-    </header>
-
-    <main>
-        <!-- Left Column: Settings and simulator -->
-        <div class="dashboard-content">
-            
-            <div class="dashboard-row">
-                <!-- Mappings Form Panel -->
-                <div class="panel">
-                    <div class="panel-header">
-                        <h2 class="panel-title">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
-                            </svg>
-                            Register New Soundbox
-                        </h2>
-                    </div>
-                    <form id="mapping-form">
-                        <div class="form-group">
-                            <label for="mid-input">Merchant ID (MID)</label>
-                            <input type="text" id="mid-input" class="form-control" placeholder="e.g. 102000000000040" required autocomplete="off">
-                        </div>
-                        <div class="form-group">
-                            <label for="sn-input">Device Serial Number (SN)</label>
-                            <input type="text" id="sn-input" class="form-control" placeholder="e.g. 161P12345678" required autocomplete="off">
-                        </div>
-                        <div class="form-group">
-                            <label for="merchant-name-input">Merchant Name / Store Title</label>
-                            <input type="text" id="merchant-name-input" class="form-control" placeholder="e.g. Acme Retailers Ltd." autocomplete="off">
-                        </div>
-                        <button type="submit" class="btn btn-primary btn-block">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1.1rem;height:1.1rem;">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                            </svg>
-                            Register & Sync Mapping
-                        </button>
-                    </form>
+    <!-- Tabbed Navigation Sidebar -->
+    <div class="sidebar">
+        <div>
+            <a class="sidebar-brand">
+                <div class="brand-logo">M</div>
+                <div class="brand-text">
+                    <h1>MTB Soundbox</h1>
+                    <p>API & Admin Panel</p>
                 </div>
+            </a>
+            
+            <nav class="sidebar-menu">
+                <div class="menu-item active" onclick="switchPage('simulator-page')">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                    </svg>
+                    <span>Console & Mock</span>
+                </div>
+                <div class="menu-item" onclick="switchPage('inventory-page')">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375 0 11-.75 0 .375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375 0 11-.75 0 .375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375 0 11-.75 0 .375 0 01.75 0z" />
+                    </svg>
+                    <span>Device Inventory</span>
+                </div>
+                <div class="menu-item" onclick="switchPage('analytics-page')">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
+                    </svg>
+                    <span>Reports & Analytics</span>
+                </div>
+                <div class="menu-item" onclick="switchPage('docs-page')">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
+                    </svg>
+                    <span>API Documentation</span>
+                </div>
+            </nav>
+        </div>
 
-                <!-- Webhook Simulator Panel -->
-                <div class="panel">
-                    <div class="panel-header">
+        <div class="sidebar-footer">
+            <div class="connection-card">
+                <div class="connection-status">
+                    <span>Database:</span>
+                    <span id="db-type-label" class="badge-type badge-local">Checking...</span>
+                </div>
+                <div class="connection-status">
+                    <span>MQTT Broker:</span>
+                    <span id="broker-status-dot" class="status-dot"></span>
+                </div>
+                <div class="connection-status">
+                    <span>API Gateway:</span>
+                    <span id="server-status-dot" class="status-dot"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="content-area">
+        
+        <header class="navbar">
+            <div class="navbar-title" id="navbar-view-title">Console & Virtual Device</div>
+            <div class="navbar-actions">
+                <div class="user-profile">
+                    <div class="user-avatar">AD</div>
+                    <div style="font-size: 0.8rem; font-weight: 600;">
+                        <div>Console Admin</div>
+                        <div style="color: var(--text-secondary); font-size: 0.7rem;">Mutual Trust Bank</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- PAGE 1: SIMULATOR PAGE (ACTIVE) -->
+        <div id="simulator-page" class="page-view active">
+            <div class="simulator-layout">
+                
+                <div class="simulator-controls">
+                    <!-- Webhook Simulator Panel -->
+                    <div class="glass-panel">
                         <h2 class="panel-title">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 9.75L16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
                             </svg>
                             Payment Callback Webhook Simulator
                         </h2>
-                    </div>
-                    
-                    <div class="quick-presets">
-                        <button class="btn btn-outline btn-sm" onclick="applyPreset(10, '102000000000040')">৳10 Demo</button>
-                        <button class="btn btn-outline btn-sm" onclick="applyPreset(250, '102000000000040')">৳250 Demo</button>
-                        <button class="btn btn-outline btn-sm" onclick="applyPreset(1500.50, '102000000000040')">৳1,500.50 Demo</button>
+                        
+                        <div class="quick-presets">
+                            <button class="btn-morphic btn-morphic-sm" onclick="applyPreset(10, '102000000105664')">৳10 Auto Preset</button>
+                            <button class="btn-morphic btn-morphic-sm" onclick="applyPreset(500, '102000000105664')">৳500 Auto Preset</button>
+                            <button class="btn-morphic btn-morphic-sm" onclick="applyPreset(2450.75, '102000000105664')">৳2,450.75 Auto Preset</button>
+                        </div>
+
+                        <form id="webhook-form">
+                            <div class="form-group">
+                                <label for="sim-mid">Target Merchant ID (MID)</label>
+                                <input type="text" id="sim-mid" class="form-control" required placeholder="e.g. 102000000105664">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="sim-amount">Amount (BDT)</label>
+                                    <input type="number" id="sim-amount" step="0.01" class="form-control" required placeholder="0.00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="sim-invoice">Invoice / Bill Ref</label>
+                                    <input type="text" id="sim-invoice" class="form-control" placeholder="123456">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="sim-rrn">RRN (Retrieval Ref Num)</label>
+                                    <input type="text" id="sim-rrn" class="form-control" placeholder="000123456789">
+                                </div>
+                                <div class="form-group">
+                                    <label for="sim-card">Card / Account No.</label>
+                                    <input type="text" id="sim-card" class="form-control" placeholder="4321-xxxx-xxxx-5678">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn-morphic btn-morphic-primary" style="width: 100%; margin-top: 0.5rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1.25rem;height:1.25rem;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.019-12.12a14.98 14.98 0 00-6.16 12.12A14.98 14.98 0 009.63 15.41M9.63 15.41a14.914 14.914 0 015.84-2.58m-5.84 2.58H4.81" />
+                                </svg>
+                                Trigger Webhook Web Message
+                            </button>
+                        </form>
                     </div>
 
-                    <form id="webhook-form">
+                    <!-- Live logs console -->
+                    <div class="glass-panel">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+                            <h2 class="panel-title" style="margin-bottom:0; border:none; padding:0;">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
+                                </svg>
+                                Transaction Console Logs
+                            </h2>
+                            <button class="btn-morphic btn-morphic-sm" onclick="clearConsole()">Clear Logs</button>
+                        </div>
+                        <div class="terminal" id="terminal-body">
+                            <div class="terminal-line"><span class="terminal-time">[10:00:00]</span><span class="terminal-tag-sys">[SYS]</span> Soundbox Gateway Console Ready. Listening...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column: Visual Device mockup -->
+                <div class="soundbox-wrapper">
+                    <div class="glass-panel" style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 1.5rem;">
+                        <h3 style="font-size:1rem; font-weight:700; color:white; align-self:flex-start; margin-bottom:-0.5rem;">Mock Soundbox</h3>
+                        
+                        <div class="soundbox-case" id="soundbox-case">
+                            <div class="soundbox-led active" id="device-led"></div>
+                            <div class="soundbox-logo">AISINO Q161PRO</div>
+                            <div class="soundbox-screen">
+                                <div class="screen-line-1" id="scr-line1">MUTUAL TRUST BANK</div>
+                                <div class="screen-line-2" id="scr-line2">Ready...</div>
+                            </div>
+                            <div class="soundbox-grill"></div>
+                            <div class="soundbox-qr-sticker">
+                                <div class="soundbox-qr-img"></div>
+                            </div>
+                        </div>
+
+                        <div class="device-info-badge">
+                            <div class="device-info-row">
+                                <span class="device-info-label">Active Serial SN:</span>
+                                <span class="device-info-val text-mono" id="simulated-sn">00078000573</span>
+                            </div>
+                            <div class="device-info-row">
+                                <span class="device-info-label">MQTT Connection:</span>
+                                <span class="device-info-val" style="color: var(--accent);" id="simulated-state">Active / Idle</span>
+                            </div>
+                        </div>
+                        <p style="color: var(--text-secondary); font-size: 0.65rem; text-align: center; line-height: 1.4;">
+                            Targeting Serial <b style="color:white;">00078000573</b> in the webhook mappings will cause this virtual mockup to display the amount and play Bengali/English speech synthesized audio.
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- PAGE 2: DEVICE INVENTORY PAGE -->
+        <div id="inventory-page" class="page-view">
+            <!-- Register Single Device & Bulk Import Forms -->
+            <div class="form-row">
+                
+                <div class="glass-panel">
+                    <h2 class="panel-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+                        </svg>
+                        Register Single Device
+                    </h2>
+                    <form id="mapping-form">
                         <div class="form-group">
-                            <label for="sim-mid">Target Merchant ID (MID)</label>
-                            <input type="text" id="sim-mid" class="form-control" required>
+                            <label for="mid-input">Merchant ID (MID)</label>
+                            <input type="text" id="mid-input" class="form-control" required placeholder="e.g. 102000000105664">
                         </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="sim-amount">Amount (BDT)</label>
-                                <input type="number" id="sim-amount" step="0.01" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="sim-invoice">Invoice / Bill Ref</label>
-                                <input type="text" id="sim-invoice" class="form-control">
-                            </div>
+                        <div class="form-group">
+                            <label for="sn-input">Soundbox Serial (SN)</label>
+                            <input type="text" id="sn-input" class="form-control" required placeholder="e.g. 00078000573">
                         </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="sim-rrn">RRN (Retrieval Ref Num)</label>
-                                <input type="text" id="sim-rrn" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label for="sim-card">Card / Acc No.</label>
-                                <input type="text" id="sim-card" class="form-control" placeholder="xxxx-xxxx-xxxx-1234">
-                            </div>
+                        <div class="form-group">
+                            <label for="merchant-name-input">Merchant Name / Store Title</label>
+                            <input type="text" id="merchant-name-input" class="form-control" placeholder="e.g. MTB Retail Shop">
                         </div>
-                        <button type="submit" class="btn btn-danger btn-block">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1.1rem;height:1.1rem;">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.019-12.12a14.98 14.98 0 00-6.16 12.12A14.98 14.98 0 009.63 15.41M9.63 15.41a14.914 14.914 0 015.84-2.58m-5.84 2.58H4.81" />
-                            </svg>
-                            Trigger Callback Webhook
+                        <button type="submit" class="btn-morphic btn-morphic-primary" style="width: 100%;">
+                            Register & Synchronize Mapping
                         </button>
                     </form>
                 </div>
+
+                <div class="glass-panel">
+                    <h2 class="panel-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Bulk Excel/CSV Import
+                    </h2>
+                    
+                    <div class="upload-dropzone" onclick="document.getElementById('excel-file-input').click()">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+                        </svg>
+                        <div class="upload-title">Drop your Excel/CSV here or Click to Browse</div>
+                        <div class="upload-sub">Supports .xlsx, .xls, and .csv files</div>
+                        <input type="file" id="excel-file-input" style="display:none;" accept=".xlsx,.xls,.csv" onchange="handleExcelUpload(event)">
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-size:0.75rem; color:var(--text-secondary);">Template Columns: <b>mid, sn, merchant_name</b></span>
+                        <button class="btn-morphic btn-morphic-sm" onclick="downloadTemplate()">Get Template</button>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- Active Mappings Table -->
-            <div class="panel">
-                <div class="panel-header">
-                    <h2 class="panel-title">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375 0 11-.75 0 .375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375 0 11-.75 0 .375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375 0 11-.75 0 .375 0 01.75 0z" />
-                        </svg>
-                        Device Mapping Database (Firestore Synced)
-                    </h2>
-                    <button class="btn btn-outline btn-sm" onclick="fetchMappings()">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:0.875rem;height:0.875rem;">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-                        </svg>
-                        Refresh Table
-                    </button>
+            <!-- Mapping Data Table -->
+            <div class="glass-panel">
+                <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                    <h2 class="panel-title" style="margin-bottom:0; border:none; padding:0;">Device Database</h2>
+                    <div style="display:flex; gap:1rem;">
+                        <button class="btn-morphic btn-morphic-success btn-morphic-sm" onclick="exportMappingsExcel()">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:0.875rem;height:0.875rem;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                            </svg>
+                            Export Excel
+                        </button>
+                        <button class="btn-morphic btn-morphic-sm" onclick="fetchMappings()">Refresh DB</button>
+                    </div>
                 </div>
-                <div class="table-container">
+
+                <div class="search-row">
+                    <div class="search-box">
+                        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <input type="text" id="mapping-search" class="form-control" placeholder="Search MIDs, serial numbers, or names..." oninput="filterMappingsTable()">
+                    </div>
+                </div>
+
+                <div class="table-responsive">
                     <table>
                         <thead>
                             <tr>
                                 <th>Merchant ID (MID)</th>
                                 <th>Device Serial (SN)</th>
-                                <th>Merchant Name / Store</th>
-                                <th>MQTT Push Topic</th>
-                                <th>Actions</th>
+                                <th>Merchant Store Name</th>
+                                <th>MQTT Target Topic</th>
+                                <th style="text-align:right;">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="mappings-table-body">
@@ -820,134 +1263,311 @@
                     </table>
                 </div>
             </div>
+        </div>
 
-            <!-- Terminal Live Logs -->
-            <div class="panel">
-                <div class="panel-header">
-                    <h2 class="panel-title">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
-                        </svg>
-                        Live Transaction Console Logs
-                    </h2>
-                    <button class="btn btn-outline btn-sm" onclick="clearConsole()">Clear Console</button>
+        <!-- PAGE 3: REPORTS & ANALYTICS PAGE -->
+        <div id="analytics-page" class="page-view">
+            <!-- KPI Cards -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-title">Total Transaction Value</div>
+                    <div class="kpi-value" id="kpi-total-val">৳0.00</div>
+                    <div class="kpi-sub">Total revenue routed through Soundbox gateway</div>
                 </div>
-                <div class="terminal" id="terminal-body">
-                    <div class="terminal-line"><span class="terminal-time">[17:05:00]</span><span class="terminal-tag-sys">[SYS]</span> Web Console Ready. Standing by for API calls...</div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Successful Payouts</div>
+                    <div class="kpi-value" id="kpi-success-count">0</div>
+                    <div class="kpi-sub" id="kpi-success-sub">0% success rate</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Registered Soundboxes</div>
+                    <div class="kpi-value" id="kpi-active-devices">0</div>
+                    <div class="kpi-sub">Active device listener mappings</div>
                 </div>
             </div>
 
-        </div>
+            <!-- Chart -->
+            <div class="glass-panel">
+                <h2 class="panel-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
+                    </svg>
+                    Real-time Transaction Trends
+                </h2>
+                <div style="height: 250px; width:100%; position:relative;">
+                    <canvas id="trends-chart"></canvas>
+                </div>
+            </div>
 
-        <!-- Right Column: Visual Soundbox Simulator -->
-        <div>
-            <div class="panel soundbox-wrapper">
-                <div class="panel-header" style="width: 100%; margin-bottom: 0;">
-                    <h2 class="panel-title">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+            <!-- Transaction Log Table -->
+            <div class="glass-panel">
+                <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                    <h2 class="panel-title" style="margin-bottom:0; border:none; padding:0;">Transaction History Ledger</h2>
+                    <div style="display:flex; gap:1rem;">
+                        <button class="btn-morphic btn-morphic-success btn-morphic-sm" onclick="exportTransactionsExcel()">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:0.875rem;height:0.875rem;">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                            </svg>
+                            Export Ledger
+                        </button>
+                        <button class="btn-morphic btn-morphic-sm" onclick="fetchTransactions()">Refresh Ledger</button>
+                    </div>
+                </div>
+
+                <div class="search-row">
+                    <div class="search-box">
+                        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        Virtual Q161Pro Device
-                    </h2>
-                </div>
-
-                <!-- Visual soundbox device -->
-                <div class="soundbox-case" id="soundbox-case">
-                    <!-- LED status -->
-                    <div class="soundbox-led active" id="device-led"></div>
-
-                    <!-- Brand label -->
-                    <div class="soundbox-logo">AISINO Q161PRO</div>
-
-                    <!-- Screen -->
-                    <div class="soundbox-screen">
-                        <div class="screen-line-1" id="scr-line1">MTB SOUNDBOX</div>
-                        <div class="screen-line-2" id="scr-line2">Ready...</div>
-                    </div>
-
-                    <!-- Speaker Grill -->
-                    <div class="soundbox-grill"></div>
-
-                    <!-- QR Code Sticker -->
-                    <div class="soundbox-qr-sticker">
-                        <div class="soundbox-qr-img"></div>
+                        <input type="text" id="tx-search" class="form-control" placeholder="Search transactions by invoice, RRN, card, or merchant..." oninput="filterTransactionsTable()">
                     </div>
                 </div>
 
-                <!-- Simulation Settings / Device Specs Info -->
-                <div class="device-info-badge">
-                    <div class="device-info-row">
-                        <span class="device-info-label">Active SN:</span>
-                        <span class="device-info-val text-mono" id="simulated-sn">161P12345678</span>
-                    </div>
-                    <div class="device-info-row">
-                        <span class="device-info-label">State:</span>
-                        <span class="device-info-val" style="color: var(--accent);" id="simulated-state">Idle / Connected</span>
-                    </div>
-                    <div style="margin-top: 0.5rem; text-align: center;">
-                        <span style="color: var(--text-secondary); font-size: 0.65rem;">
-                            When you trigger a payment callback targeting the mapping of this serial number, the virtual device screen changes and reads the payment aloud using browser audio.
-                        </span>
-                    </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Merchant MID</th>
+                                <th>Target Serial (SN)</th>
+                                <th>Invoice</th>
+                                <th>RRN Reference</th>
+                                <th>Card/Account</th>
+                                <th>Amount</th>
+                                <th style="text-align:right;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactions-table-body">
+                            <tr>
+                                <td colspan="8" style="text-align: center; color: var(--text-secondary);">No transaction history logs found.</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-    </main>
+
+        <!-- PAGE 4: API DOCUMENTATION PAGE -->
+        <div id="docs-page" class="page-view">
+            <div class="glass-panel">
+                <h2 class="panel-title">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
+                    </svg>
+                    Bank Integration Webhook Documentation
+                </h2>
+                
+                <div class="doc-section">
+                    <h3>1. Webhook Payment Callback</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5;">
+                        To broadcast payments from your bank core network to registered Soundbox devices, compile a REST API webhook payload and execute an HTTP `POST` request to our gateway route. The gateway automatically translates the Merchant ID (MID), resolves the device's unique topic, and publishes the speech payload via MQTT.
+                    </p>
+
+                    <div style="font-size: 0.9rem; line-height: 1.5;">
+                        <span class="doc-method method-post">POST</span>
+                        <code class="text-mono" id="endpoint-url">https://your-soundbox-gateway.com/api/payment</code>
+                    </div>
+
+                    <h4 style="font-size: 0.85rem; font-weight: 700; color: white;">Payload Parameters (JSON Body)</h4>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="text-mono">mid</td>
+                                    <td>String</td>
+                                    <td style="color:var(--danger); font-weight:bold;">Required</td>
+                                    <td>Merchant ID registered inside the database mapping console.</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-mono">amount</td>
+                                    <td>Number / String</td>
+                                    <td style="color:var(--danger); font-weight:bold;">Required</td>
+                                    <td>Payment transaction amount. Read aloud by the device speaker.</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-mono">invoice</td>
+                                    <td>String</td>
+                                    <td>Optional</td>
+                                    <td>Transaction invoice index (e.g. "459039"). Displays on device LCD screen.</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-mono">rrn</td>
+                                    <td>String</td>
+                                    <td>Optional</td>
+                                    <td>Retrieval Reference Number (RRN) for transaction audits. Displays on device screen.</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-mono">card_number</td>
+                                    <td>String</td>
+                                    <td>Optional</td>
+                                    <td>Masked account or card index triggering payment. Logged inside console metrics.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <h4 style="font-size: 0.85rem; font-weight: 700; color: white; margin-top: 1rem;">Integration Code Samples</h4>
+                    
+                    <!-- cURL Sample -->
+                    <div class="code-block-header">
+                        <span>cURL HTTP REQUEST</span>
+                        <button class="copy-btn" onclick="copyCode('curl-code')">Copy Code</button>
+                    </div>
+                    <pre class="code-block" id="curl-code">curl -X POST https://your-soundbox-gateway.com/api/payment \
+  -H "Content-Type: application/json" \
+  -d '{
+    "mid": "102000000105664",
+    "amount": 250.50,
+    "invoice": "402940",
+    "rrn": "392040590390",
+    "card_number": "1234-xxxx-xxxx-9012"
+  }'</pre>
+
+                    <!-- JS Sample -->
+                    <div class="code-block-header">
+                        <span>JAVASCRIPT (FETCH API)</span>
+                        <button class="copy-btn" onclick="copyCode('js-code')">Copy Code</button>
+                    </div>
+                    <pre class="code-block" id="js-code">const payload = {
+  mid: "102000000105664",
+  amount: 250.50,
+  invoice: "402940",
+  rrn: "392040590390",
+  card_number: "1234-xxxx-xxxx-9012"
+};
+
+fetch('https://your-soundbox-gateway.com/api/payment', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(payload)
+})
+.then(res => res.json())
+.then(data => console.log('Speech triggered successfully:', data))
+.catch(err => console.error('Connection failed:', err));</pre>
+
+                    <!-- Python Sample -->
+                    <div class="code-block-header">
+                        <span>PYTHON (REQUESTS)</span>
+                        <button class="copy-btn" onclick="copyCode('python-code')">Copy Code</button>
+                    </div>
+                    <pre class="code-block" id="python-code">import requests
+
+url = "https://your-soundbox-gateway.com/api/payment"
+payload = {
+    "mid": "102000000105664",
+    "amount": 250.50,
+    "invoice": "402940",
+    "rrn": "392040590390",
+    "card_number": "1234-xxxx-xxxx-9012"
+}
+
+headers = {"Content-Type": "application/json"}
+response = requests.post(url, json=payload, headers=headers)
+print("Response Status Code:", response.status_code)
+print("Response JSON:", response.json())</pre>
+                </div>
+            </div>
+        </div>
+
+    </div>
 
     <!-- Toast Alerts -->
     <div class="toast-container" id="toast-container"></div>
 
     <script>
-        // Global State variables
+        // Global States
         let serverStatus = { online: false, database: 'local', mqtt_broker: '' };
         let activeMappings = [];
+        let allTransactions = [];
+        let trendChartObj = null;
 
-        // Elements lookup
+        // Elements
         const mappingsTableBody = document.getElementById('mappings-table-body');
+        const transactionsTableBody = document.getElementById('transactions-table-body');
         const terminalBody = document.getElementById('terminal-body');
         
-        // Connect UI Elements
-        const serverIndicator = document.getElementById('server-indicator-dot');
-        const serverLabel = document.getElementById('server-label');
-        const brokerIndicator = document.getElementById('broker-indicator-dot');
-        const brokerLabel = document.getElementById('broker-label');
+        // Header indicator badges
+        const serverStatusDot = document.getElementById('server-status-dot');
+        const brokerStatusDot = document.getElementById('broker-status-dot');
         const dbTypeLabel = document.getElementById('db-type-label');
 
-        // Form Event Listeners
+        // Form listeners
         document.getElementById('mapping-form').addEventListener('submit', handleMappingSubmit);
         document.getElementById('webhook-form').addEventListener('submit', handleWebhookSubmit);
 
-        // Init
+        // Tab Navigation
+        function switchPage(pageId) {
+            // Remove active classes
+            document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            
+            // Set active class
+            document.getElementById(pageId).classList.add('active');
+            
+            // Get clicked element and mark active
+            const items = document.querySelectorAll('.menu-item');
+            if (pageId === 'simulator-page') {
+                items[0].classList.add('active');
+                document.getElementById('navbar-view-title').textContent = 'Console & Virtual Device';
+            } else if (pageId === 'inventory-page') {
+                items[1].classList.add('active');
+                document.getElementById('navbar-view-title').textContent = 'Device Mapping Database';
+                fetchMappings();
+            } else if (pageId === 'analytics-page') {
+                items[2].classList.add('active');
+                document.getElementById('navbar-view-title').textContent = 'Reports, Metrics & Logs';
+                fetchTransactions();
+            } else if (pageId === 'docs-page') {
+                items[3].classList.add('active');
+                document.getElementById('navbar-view-title').textContent = 'API Webhook Docs';
+            }
+        }
+
+        // Initialize App
         window.addEventListener('DOMContentLoaded', () => {
             checkServerStatus();
             fetchMappings();
-            // Poll for status every 10 seconds
-            setInterval(checkServerStatus, 10000);
+            fetchTransactions();
             
-            // Set initial dynamic time fields in simulation fields
-            const now = new Date();
+            // Auto update status indicators
+            setInterval(checkServerStatus, 15000);
+
+            // Populate form defaults
             document.getElementById('sim-invoice').value = Math.floor(100000 + Math.random() * 900000);
             document.getElementById('sim-rrn').value = Math.floor(100000000000 + Math.random() * 900000000000);
-            document.getElementById('sim-card').value = '1234-56xx-xxxx-' + Math.floor(1000 + Math.random() * 9000);
-            
-            // Pre-fill with a default MID
-            document.getElementById('sim-mid').value = '102000000000040';
+            document.getElementById('sim-card').value = '4321-xxxx-xxxx-' + Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('sim-mid').value = '102000000105664';
             document.getElementById('sim-amount').value = '250.00';
+
+            // Document endpoint rewrite
+            const currentHost = window.location.origin;
+            document.getElementById('endpoint-url').textContent = `${currentHost}/api/payment`;
+            document.getElementById('curl-code').textContent = document.getElementById('curl-code').textContent.replace('https://your-soundbox-gateway.com', currentHost);
+            document.getElementById('js-code').textContent = document.getElementById('js-code').textContent.replace('https://your-soundbox-gateway.com', currentHost);
+            document.getElementById('python-code').textContent = document.getElementById('python-code').textContent.replace('https://your-soundbox-gateway.com', currentHost);
         });
 
-        // Apply a preset payload
+        // Setup preset parameters
         function applyPreset(amount, mid) {
             document.getElementById('sim-amount').value = amount;
             document.getElementById('sim-mid').value = mid;
             document.getElementById('sim-invoice').value = Math.floor(100000 + Math.random() * 900000);
             document.getElementById('sim-rrn').value = Math.floor(100000000000 + Math.random() * 900000000000);
-            document.getElementById('sim-card').value = '4524-78xx-xxxx-' + Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('sim-card').value = '4321-xxxx-xxxx-' + Math.floor(1000 + Math.random() * 9000);
             
-            showToast('Preset loaded! Hit "Trigger Callback Webhook" to send.', 'success');
-            logConsole('sys', `Loaded webhook preset: ${amount} BDT for MID ${mid}`);
+            showToast('Preset payload loaded! Press trigger button.', 'success');
+            logConsole('sys', `Loaded Quick Preset: ৳${amount} BDT for MID ${mid}`);
         }
 
-        // Show Toast Notification
+        // Show Toast Notifications
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -957,32 +1577,26 @@
                 `<svg class="toast-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>` :
                 `<svg class="toast-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
             
-            toast.innerHTML = `
-                ${iconSvg}
-                <div>${message}</div>
-            `;
-            
+            toast.innerHTML = `${iconSvg}<div>${message}</div>`;
             container.appendChild(toast);
             
-            // Trigger animation
             setTimeout(() => toast.classList.add('show'), 10);
             
-            // Auto remove
             setTimeout(() => {
                 toast.classList.remove('show');
                 setTimeout(() => toast.remove(), 300);
             }, 4000);
         }
 
-        // Write log to virtual console
+        // Write to terminal
         function logConsole(tag, message) {
             const now = new Date();
             const timeStr = now.toTimeString().split(' ')[0];
             
             let tagSpan = '';
             if (tag === 'sys') tagSpan = `<span class="terminal-tag-sys">[SYS]</span>`;
-            else if (tag === 'in') tagSpan = `<span class="terminal-tag-in">[API IN]</span>`;
-            else if (tag === 'out') tagSpan = `<span class="terminal-tag-out">[MQTT OUT]</span>`;
+            else if (tag === 'in') tagSpan = `<span class="terminal-tag-in">[API RECEIVE]</span>`;
+            else if (tag === 'out') tagSpan = `<span class="terminal-tag-out">[MQTT PUSH]</span>`;
             
             const line = document.createElement('div');
             line.className = 'terminal-line';
@@ -994,110 +1608,130 @@
 
         function clearConsole() {
             terminalBody.innerHTML = '';
-            logConsole('sys', 'Console logs cleared.');
+            logConsole('sys', 'Console log history cleared.');
         }
 
-        // Server check API
+        // Copy integrations docs
+        function copyCode(elementId) {
+            const code = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                showToast('Code snippet copied to clipboard!', 'success');
+            }).catch(err => {
+                showToast('Failed to copy code.', 'error');
+            });
+        }
+
+        // Check APIs status
         async function checkServerStatus() {
             try {
                 const response = await fetch('/api/status');
-                if (!response.ok) throw new Error('API down');
-                
+                if (!response.ok) throw new Error('Gateway Offline');
                 const data = await response.json();
+                
                 serverStatus.online = true;
                 serverStatus.database = data.database;
                 serverStatus.mqtt_broker = data.mqtt_broker;
 
-                // Update Server UI Badge
-                serverIndicator.className = 'status-dot online';
-                serverLabel.textContent = 'API Gateway: Online';
-
-                // Update Database Badge
+                // Update navbar and sidebar badges
+                serverStatusDot.className = 'status-dot online';
+                brokerStatusDot.className = 'status-dot online';
                 dbTypeLabel.className = `badge-type badge-${data.database}`;
-                dbTypeLabel.textContent = data.database.toUpperCase();
-
-                // Update MQTT Badge
-                brokerIndicator.className = 'status-dot online';
-                // Crop broker schema for UI
-                const cleanBroker = data.mqtt_broker.replace('mqtt://', '').replace('mqtts://', '');
-                brokerLabel.textContent = `Broker: ${cleanBroker}`;
-
+                dbTypeLabel.textContent = data.database;
             } catch (err) {
                 serverStatus.online = false;
-                serverIndicator.className = 'status-dot offline';
-                serverLabel.textContent = 'API Gateway: Offline';
-                brokerIndicator.className = 'status-dot offline';
-                brokerLabel.textContent = 'Broker: Disconnected';
+                serverStatusDot.className = 'status-dot offline';
+                brokerStatusDot.className = 'status-dot offline';
                 dbTypeLabel.className = 'badge-type badge-local';
-                dbTypeLabel.textContent = 'DISCONNECTED';
-                
-                logConsole('sys', `Server connection heartbeat failed: ${err.message}`);
+                dbTypeLabel.textContent = 'OFFLINE';
             }
         }
 
-        // Get mappings API
+        // Fetch mappings from DB
         async function fetchMappings() {
             try {
                 const response = await fetch('/api/mappings');
-                if (!response.ok) throw new Error('Failed to fetch mappings');
+                if (!response.ok) throw new Error('Database unreachable');
                 const list = await response.json();
                 activeMappings = list;
                 
-                // Repopulate UI Table
-                mappingsTableBody.innerHTML = '';
-                if (list.length === 0) {
-                    mappingsTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-secondary);">No mappings found. Register a device.</td></tr>';
-                    return;
-                }
-
-                list.forEach(item => {
-                    const row = document.createElement('tr');
-                    
-                    // Highlight first matching SN for virtual device sync
-                    const activeSn = document.getElementById('simulated-sn').textContent;
-                    const isSelectedDevice = (item.sn === activeSn) ? 'style="border-left: 3px solid var(--accent);"' : '';
-
-                    row.innerHTML = `
-                        <td ${isSelectedDevice} class="text-mono">${item.mid}</td>
-                        <td><span class="text-mono" style="cursor: pointer; text-decoration: underline;" onclick="syncVirtualDevice('${item.sn}')">${item.sn}</span></td>
-                        <td>${item.merchant_name || 'N/A'}</td>
-                        <td class="text-mono">topic_${item.sn}</td>
-                        <td>
-                            <div style="display:flex; gap:0.5rem;">
-                                <button class="btn btn-outline btn-sm" onclick="syncVirtualDevice('${item.sn}')">Load to Mock</button>
-                                <button class="btn btn-danger btn-sm" onclick="deleteMapping('${item.mid}')">Delete</button>
-                            </div>
-                        </td>
-                    `;
-                    mappingsTableBody.appendChild(row);
-                });
-
-                logConsole('sys', `Loaded ${list.length} mappings from db.`);
+                populateMappingsTable(list);
+                document.getElementById('kpi-active-devices').textContent = list.length;
             } catch (err) {
-                mappingsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger);">Error: ${err.message}</td></tr>`;
+                mappingsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger); font-weight:700;">Error: ${err.message}</td></tr>`;
             }
         }
 
-        // Load targeted device into the simulator
-        function syncVirtualDevice(sn) {
+        function populateMappingsTable(list) {
+            mappingsTableBody.innerHTML = '';
+            if (list.length === 0) {
+                mappingsTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                                </svg>
+                                <div class="upload-title">No mapped devices registered</div>
+                                <div class="upload-sub">Register a device or import an Excel inventory list.</div>
+                            </div>
+                        </td>
+                    </tr>`;
+                return;
+            }
+
+            list.forEach(item => {
+                const row = document.createElement('tr');
+                const mockSn = document.getElementById('simulated-sn').textContent;
+                const activeStyle = (item.sn === mockSn) ? 'style="border-left: 4px solid var(--primary); font-weight:bold;"' : '';
+                
+                row.innerHTML = `
+                    <td ${activeStyle} class="text-mono">${item.mid}</td>
+                    <td class="text-mono" style="color:var(--primary); font-weight:600; cursor:pointer;" onclick="loadMockDevice('${item.sn}')">${item.sn}</td>
+                    <td>${item.merchant_name || 'N/A'}</td>
+                    <td class="text-mono">topic_${item.sn}</td>
+                    <td style="text-align:right;">
+                        <div style="display:inline-flex; gap:0.5rem;">
+                            <button class="btn-morphic btn-morphic-sm" onclick="loadMockDevice('${item.sn}')">Mock</button>
+                            <button class="btn-morphic btn-morphic-danger btn-morphic-sm" onclick="deleteMapping('${item.mid}')">Delete</button>
+                        </div>
+                    </td>
+                `;
+                mappingsTableBody.appendChild(row);
+            });
+        }
+
+        // Search mappings client-side
+        function filterMappingsTable() {
+            const query = document.getElementById('mapping-search').value.toLowerCase().trim();
+            if (!query) {
+                populateMappingsTable(activeMappings);
+                return;
+            }
+            const filtered = activeMappings.filter(item => 
+                item.mid.toLowerCase().includes(query) ||
+                item.sn.toLowerCase().includes(query) ||
+                (item.merchant_name && item.merchant_name.toLowerCase().includes(query))
+            );
+            populateMappingsTable(filtered);
+        }
+
+        function loadMockDevice(sn) {
             document.getElementById('simulated-sn').textContent = sn;
-            // Lookup MID for this SN to make webhook trigger easy
             const mapping = activeMappings.find(m => m.sn === sn);
             if (mapping) {
                 document.getElementById('sim-mid').value = mapping.mid;
-                document.getElementById('scr-line1').textContent = mapping.merchant_name.substring(0, 16).toUpperCase();
+                document.getElementById('scr-line1').textContent = (mapping.merchant_name || 'MTB SOUNDBOX').substring(0, 16).toUpperCase();
                 document.getElementById('scr-line2').textContent = 'Ready...';
-                logConsole('sys', `Virtual Soundbox synced with SN: ${sn} (${mapping.merchant_name})`);
-                showToast(`Virtual device set to SN: ${sn}`, 'success');
+                logConsole('sys', `Virtual Soundbox linked to Serial SN: ${sn}`);
+                showToast(`Mock Soundbox SN set to: ${sn}`, 'success');
             } else {
-                document.getElementById('simulated-sn').textContent = sn;
                 document.getElementById('scr-line1').textContent = 'MTB SOUNDBOX';
                 document.getElementById('scr-line2').textContent = 'Ready...';
-                logConsole('sys', `Virtual Soundbox synced with unmapped SN: ${sn}`);
+                logConsole('sys', `Virtual Soundbox linked to unmapped SN: ${sn}`);
             }
         }
 
-        // Create/Update mapping
+        // Submit mapping
         async function handleMappingSubmit(e) {
             e.preventDefault();
             const mid = document.getElementById('mid-input').value.trim();
@@ -1105,7 +1739,7 @@
             const merchant_name = document.getElementById('merchant-name-input').value.trim();
 
             if (!mid || !sn) {
-                showToast('MID and SN are required', 'error');
+                showToast('MID and Serial SN are required', 'error');
                 return;
             }
 
@@ -1115,50 +1749,173 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ mid, sn, merchant_name })
                 });
-
                 const data = await response.json();
-                if (!response.ok) throw new Error(data.error || 'Failed to update database');
+                if (!response.ok) throw new Error(data.error || 'Request rejected');
 
-                showToast(`Merchant successfully registered: ${mid} -> ${sn}`, 'success');
-                logConsole('sys', `Created Mapping: MID [${mid}] <==> SN [${sn}]`);
+                showToast('Device mapping synchronized successfully', 'success');
+                logConsole('sys', `Updated Mapping: MID [${mid}] ➔ Serial [${sn}]`);
                 
-                // Clear inputs
                 document.getElementById('mid-input').value = '';
                 document.getElementById('sn-input').value = '';
                 document.getElementById('merchant-name-input').value = '';
                 
-                // Sync table and load this device
                 await fetchMappings();
-                syncVirtualDevice(sn);
-
+                loadMockDevice(sn);
             } catch (err) {
-                showToast(err.message, 'error');
-                logConsole('sys', `Registration error: ${err.message}`);
+                showToast(`Add failed: ${err.message}`, 'error');
             }
         }
 
-        // Delete mapping API
+        // Delete mapping
         async function deleteMapping(mid) {
-            if (!confirm(`Are you sure you want to delete the mapping for Merchant ID: ${mid}?`)) {
+            if (!confirm(`Are you sure you want to remove the mapped device for MID: ${mid}?`)) return;
+            try {
+                const response = await fetch(`/api/mappings/${mid}`, { method: 'DELETE' });
+                if (!response.ok) throw new Error('Delete rejected');
+                showToast('Device mapping deleted', 'success');
+                logConsole('sys', `Deleted Device Mapping for MID: ${mid}`);
+                fetchMappings();
+            } catch (err) {
+                showToast(`Delete failed: ${err.message}`, 'error');
+            }
+        }
+
+        // Fetch transaction history
+        async function fetchTransactions() {
+            try {
+                const response = await fetch('/api/transactions');
+                if (!response.ok) throw new Error('Ledger data unreachable');
+                const list = await response.json();
+                allTransactions = list;
+                
+                populateTransactionsTable(list);
+                calculateKpis(list);
+                renderAnalyticsChart(list);
+            } catch (err) {
+                transactionsTableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--danger); font-weight:700;">Error: ${err.message}</td></tr>`;
+            }
+        }
+
+        function populateTransactionsTable(list) {
+            transactionsTableBody.innerHTML = '';
+            if (list.length === 0) {
+                transactionsTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8">
+                            <div class="empty-state">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                </svg>
+                                <div class="upload-title">No transactions logged</div>
+                                <div class="upload-sub">Trigger the webhook simulator to test.</div>
+                            </div>
+                        </td>
+                    </tr>`;
                 return;
             }
 
-            try {
-                const response = await fetch(`/api/mappings/${mid}`, {
-                    method: 'DELETE'
-                });
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error || 'Failed to delete');
+            list.forEach(tx => {
+                const date = new Date(tx.time);
+                const timeLabel = date.toLocaleString();
+                const statusPill = tx.status === 'success' ? 
+                    `<span class="status-pill status-pill-success">Success</span>` :
+                    `<span class="status-pill status-pill-failed">Failed</span>`;
 
-                showToast(`Mapping for ${mid} deleted`, 'success');
-                logConsole('sys', `Deleted mapping for MID: ${mid}`);
-                fetchMappings();
-            } catch (err) {
-                showToast(err.message, 'error');
-            }
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${timeLabel}</td>
+                    <td class="text-mono">${tx.mid}</td>
+                    <td class="text-mono">${tx.sn}</td>
+                    <td class="text-mono">${tx.invoice}</td>
+                    <td class="text-mono">${tx.rrn}</td>
+                    <td class="text-mono">${tx.card_number || 'N/A'}</td>
+                    <td style="font-weight:700; color:white;">৳${parseFloat(tx.amount).toFixed(2)}</td>
+                    <td style="text-align:right;">${statusPill}</td>
+                `;
+                transactionsTableBody.appendChild(row);
+            });
         }
 
-        // Submit webhook simulation
+        // Search transactions
+        function filterTransactionsTable() {
+            const query = document.getElementById('tx-search').value.toLowerCase().trim();
+            if (!query) {
+                populateTransactionsTable(allTransactions);
+                return;
+            }
+            const filtered = allTransactions.filter(tx => 
+                tx.invoice.toLowerCase().includes(query) ||
+                tx.rrn.toLowerCase().includes(query) ||
+                tx.mid.toLowerCase().includes(query) ||
+                tx.sn.toLowerCase().includes(query) ||
+                (tx.card_number && tx.card_number.toLowerCase().includes(query)) ||
+                (tx.merchant_name && tx.merchant_name.toLowerCase().includes(query))
+            );
+            populateTransactionsTable(filtered);
+        }
+
+        function calculateKpis(list) {
+            const successes = list.filter(tx => tx.status === 'success');
+            const totalVal = successes.reduce((acc, curr) => acc + parseFloat(curr.amount), 0);
+            
+            document.getElementById('kpi-total-val').textContent = `৳${totalVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            document.getElementById('kpi-success-count').textContent = successes.length;
+            
+            const successRate = list.length > 0 ? Math.round((successes.length / list.length) * 100) : 100;
+            document.getElementById('kpi-success-sub').textContent = `${successRate}% success rate (${list.length - successes.length} failed)`;
+        }
+
+        // Render analytics Chart.js
+        function renderAnalyticsChart(list) {
+            // Group transactions by minutes/hours
+            const reversed = [...list].reverse().slice(-15); // Get last 15 entries chronologically
+            const labels = reversed.map(t => new Date(t.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+            const dataAmounts = reversed.map(t => t.status === 'success' ? parseFloat(t.amount) : 0);
+
+            const ctx = document.getElementById('trends-chart').getContext('2d');
+            
+            if (trendChartObj) {
+                trendChartObj.destroy();
+            }
+
+            trendChartObj = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Payment Volume (BDT)',
+                        data: dataAmounts,
+                        borderColor: '#0071e3',
+                        backgroundColor: 'rgba(0, 113, 227, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#34c759',
+                        pointBorderColor: 'white',
+                        pointHoverRadius: 7,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8' }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Webhook Simulation Call
         async function handleWebhookSubmit(e) {
             e.preventDefault();
             const mid = document.getElementById('sim-mid').value.trim();
@@ -1167,7 +1924,7 @@
             const rrn = document.getElementById('sim-rrn').value.trim();
             const card_number = document.getElementById('sim-card').value.trim();
 
-            logConsole('in', `HTTP POST callback incoming for Merchant MID: ${mid} | Amount: BDT ${amount}`);
+            logConsole('in', `Post Payment to MID: ${mid} | Value: ৳${amount} BDT`);
 
             try {
                 const response = await fetch('/api/payment', {
@@ -1184,86 +1941,176 @@
                 });
 
                 const data = await response.json();
-                if (!response.ok) {
-                    throw new Error(data.error || `Server responded with ${response.status}`);
-                }
+                if (!response.ok) throw new Error(data.error || 'Server rejected webhook');
 
-                showToast(`Webhook simulation processed!`, 'success');
-                logConsole('sys', `API status: 200 OK. Resolved Target SN: ${data.target_device_sn}`);
-                logConsole('out', `MQTT Broker published payload to topic: ${data.topic}`);
+                showToast('Webhook payout simulation complete!', 'success');
+                logConsole('sys', `API status: 200 OK. Mapped SN: ${data.target_device_sn}`);
+                logConsole('out', `MQTT notification published to: ${data.topic}`);
 
-                // Check if target device matches current simulated mock soundbox
-                const currentSimSn = document.getElementById('simulated-sn').textContent;
-                if (data.target_device_sn === currentSimSn) {
-                    triggerVirtualPaymentReceipt(amount, invoice);
+                // Sync UI simulator
+                const activeMockSn = document.getElementById('simulated-sn').textContent;
+                if (data.target_device_sn === activeMockSn) {
+                    playMockAudioBroadcast(amount);
                 } else {
-                    logConsole('sys', `Push sent, but targets a different serial number: ${data.target_device_sn} (Current Mock SN is ${currentSimSn})`);
+                    logConsole('sys', `MQTT sent to different serial number [${data.target_device_sn}], virtual Soundbox did not speak.`);
                 }
 
+                // Auto-refresh transaction list
+                fetchTransactions();
+
+                // Regenerate fields for next trigger
+                document.getElementById('sim-invoice').value = Math.floor(100000 + Math.random() * 900000);
+                document.getElementById('sim-rrn').value = Math.floor(100000000000 + Math.random() * 900000000000);
             } catch (err) {
                 showToast(`Simulation failed: ${err.message}`, 'error');
-                logConsole('sys', `API error: ${err.message}`);
+                logConsole('sys', `Webhook callback failed: ${err.message}`);
+                fetchTransactions();
             }
         }
 
-        // Simulate voice broadcast and screen flash on Virtual device mockup
-        function triggerVirtualPaymentReceipt(amount, invoice) {
+        // Text-to-Speech playback visualizer
+        function playMockAudioBroadcast(amount) {
             const led = document.getElementById('device-led');
-            const stateLabel = document.getElementById('simulated-state');
-            const scrLine1 = document.getElementById('scr-line1');
-            const scrLine2 = document.getElementById('scr-line2');
-            const boxCase = document.getElementById('soundbox-case');
+            const state = document.getElementById('simulated-state');
+            const l1 = document.getElementById('scr-line1');
+            const l2 = document.getElementById('scr-line2');
+            const device = document.getElementById('soundbox-case');
 
-            // Set state to receiving
-            stateLabel.textContent = 'RECEIVING PAYROLL';
-            stateLabel.style.color = 'var(--primary)';
             led.className = 'soundbox-led receiving';
-            
-            // Screen display animation
-            scrLine1.textContent = 'SUCCESSFUL PAY';
-            scrLine2.textContent = `৳ ${amount}`;
-            
-            // Add pulse effect to device case
-            boxCase.style.transform = 'scale(1.03)';
-            boxCase.style.boxShadow = '0 30px 60px -10px rgba(59, 130, 246, 0.4)';
-            
-            // Voice Output: Browser TTS Speech Synthesis
+            state.textContent = 'PAYMENT DISPATCH';
+            state.style.color = 'var(--primary)';
+            l1.textContent = 'PAYMENT SUCCESS';
+            l2.textContent = `৳ ${amount}`;
+
+            device.style.transform = 'scale(1.04)';
+            device.style.boxShadow = '0 30px 60px -10px rgba(0, 113, 227, 0.4)';
+
+            // TTS Speech
             if ('speechSynthesis' in window) {
-                // Cancel ongoing speeches
                 window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(`Received ${amount} Taka`);
+                utterance.rate = 0.95;
+                utterance.volume = 1.0;
                 
-                // Read text aloud: "Received [Amount] Taka"
-                // Using clean default voice, setting language preference
-                const msgText = `Received ${amount} Taka`;
-                const speech = new SpeechSynthesisUtterance(msgText);
-                speech.rate = 0.95;
-                speech.pitch = 1.1;
-                speech.volume = 1.0;
-                
-                // Optional: Attempt to find a natural English/Bangla voice if installed
                 const voices = window.speechSynthesis.getVoices();
-                const preferredVoice = voices.find(v => v.lang.includes('bn-BD') || v.lang.includes('en-IN') || v.lang.includes('en-US'));
-                if (preferredVoice) {
-                    speech.voice = preferredVoice;
-                }
+                // Select regional English or fallback
+                const regionalVoice = voices.find(v => v.lang.includes('en-IN') || v.lang.includes('en-GB') || v.lang.includes('en-US'));
+                if (regionalVoice) utterance.voice = regionalVoice;
                 
-                window.speechSynthesis.speak(speech);
+                window.speechSynthesis.speak(utterance);
             }
 
-            // Restore state after 3.5 seconds
             setTimeout(() => {
                 led.className = 'soundbox-led active';
-                stateLabel.textContent = 'Idle / Connected';
-                stateLabel.style.color = 'var(--accent)';
-                boxCase.style.transform = 'none';
-                boxCase.style.boxShadow = 'var(--card-shadow)';
+                state.textContent = 'Active / Idle';
+                state.style.color = 'var(--accent)';
+                device.style.transform = 'none';
+                device.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.8)';
                 
-                // Lookup current merchant name for default screen text
-                const currentSimSn = document.getElementById('simulated-sn').textContent;
-                const mapping = activeMappings.find(m => m.sn === currentSimSn);
-                scrLine1.textContent = mapping ? mapping.merchant_name.substring(0, 16).toUpperCase() : 'MTB SOUNDBOX';
-                scrLine2.textContent = 'Ready...';
-            }, 3500);
+                const match = activeMappings.find(m => m.sn === document.getElementById('simulated-sn').textContent);
+                l1.textContent = match ? (match.merchant_name || 'MUTUAL TRUST BANK').substring(0, 16).toUpperCase() : 'MUTUAL TRUST BANK';
+                l2.textContent = 'Ready...';
+            }, 4000);
+        }
+
+        // Excel Mappings template download
+        function downloadTemplate() {
+            const headers = [["mid", "sn", "merchant_name"]];
+            const worksheet = XLSX.utils.aoa_to_sheet(headers);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "InventoryTemplate");
+            XLSX.writeFile(workbook, "MTB_Soundbox_Inventory_Template.xlsx");
+            showToast('Template downloaded! Populate columns and import.', 'success');
+        }
+
+        // Parse uploaded Excel mapping file
+        function handleExcelUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = XLSX.utils.sheet_to_json(sheet);
+
+                    // Map columns
+                    const mappings = rows.map(r => ({
+                        mid: r.mid || r.MID || r.MerchantID || '',
+                        sn: r.sn || r.SN || r.SerialNumber || '',
+                        merchant_name: r.merchant_name || r.MerchantName || r.Store || 'N/A'
+                    })).filter(x => x.mid && x.sn);
+
+                    if (mappings.length === 0) {
+                        throw new Error('No valid mappings found. Check column headers (mid, sn).');
+                    }
+
+                    const response = await fetch('/api/mappings/batch', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ mappings })
+                    });
+                    const resData = await response.json();
+                    
+                    if (!response.ok) throw new Error(resData.error || 'Upload rejected');
+
+                    showToast(`Successfully imported ${resData.count} device mappings!`, 'success');
+                    logConsole('sys', `Excel Import Success: Synced ${resData.count} device mappings bulk rows.`);
+                    fetchMappings();
+                } catch (err) {
+                    showToast(`Import failed: ${err.message}`, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            event.target.value = ''; // Reset file input
+        }
+
+        // Export active inventory to Excel
+        function exportMappingsExcel() {
+            if (activeMappings.length === 0) {
+                showToast('No inventory data to export', 'error');
+                return;
+            }
+            const cleanList = activeMappings.map(x => ({
+                'Merchant ID (MID)': x.mid,
+                'Device Serial (SN)': x.sn,
+                'Merchant Title': x.merchant_name || 'N/A',
+                'MQTT Topic': `topic_${x.sn}`,
+                'Last Updated': x.updated_at
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(cleanList);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "InventoryList");
+            XLSX.writeFile(workbook, "MTB_Soundbox_Inventory.xlsx");
+            showToast('Inventory exported successfully!', 'success');
+        }
+
+        // Export transaction logs to Excel
+        function exportTransactionsExcel() {
+            if (allTransactions.length === 0) {
+                showToast('No transaction logs to export', 'error');
+                return;
+            }
+            const cleanLogs = allTransactions.map(t => ({
+                'Timestamp': new Date(t.time).toLocaleString(),
+                'Merchant MID': t.mid,
+                'Merchant Name': t.merchant_name,
+                'Target Serial (SN)': t.sn,
+                'Invoice Ref': t.invoice,
+                'Retrieval Ref (RRN)': t.rrn,
+                'Account / Card': t.card_number || 'N/A',
+                'Amount (BDT)': parseFloat(t.amount).toFixed(2),
+                'Broadcast Status': t.status.toUpperCase()
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(cleanLogs);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "TransactionLogs");
+            XLSX.writeFile(workbook, "MTB_Soundbox_Transaction_Ledger.xlsx");
+            showToast('Transaction ledger exported successfully!', 'success');
         }
     </script>
 </body>
