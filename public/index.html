@@ -1079,8 +1079,8 @@
 
                         <form id="webhook-form">
                             <div class="form-group">
-                                <label for="sim-mid">Target Merchant ID (MID)</label>
-                                <input type="text" id="sim-mid" class="form-control" required placeholder="e.g. 102000000105664">
+                                <label for="sim-tid">Target Terminal ID (TID)</label>
+                                <input type="text" id="sim-tid" class="form-control" required placeholder="e.g. 102000000105664">
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
@@ -1179,8 +1179,8 @@
                     </h2>
                     <form id="mapping-form">
                         <div class="form-group">
-                            <label for="mid-input">Merchant ID (MID)</label>
-                            <input type="text" id="mid-input" class="form-control" required placeholder="e.g. 102000000105664">
+                            <label for="tid-input">Terminal ID (TID)</label>
+                            <input type="text" id="tid-input" class="form-control" required placeholder="e.g. 102000000105664">
                         </div>
                         <div class="form-group">
                             <label for="sn-input">Soundbox Serial (SN)</label>
@@ -1214,7 +1214,7 @@
                     </div>
 
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-size:0.75rem; color:var(--text-secondary);">Template Columns: <b>mid, sn, merchant_name</b></span>
+                        <span style="font-size:0.75rem; color:var(--text-secondary);">Template Columns: <b>tid, sn, merchant_name</b></span>
                         <button class="btn-morphic btn-morphic-sm" onclick="downloadTemplate()">Get Template</button>
                     </div>
                 </div>
@@ -1249,7 +1249,7 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Merchant ID (MID)</th>
+                                <th>Terminal ID (TID)</th>
                                 <th>Device Serial (SN)</th>
                                 <th>Merchant Store Name</th>
                                 <th>MQTT Target Topic</th>
@@ -1329,7 +1329,7 @@
                         <thead>
                             <tr>
                                 <th>Timestamp</th>
-                                <th>Merchant MID</th>
+                                <th>Terminal TID</th>
                                 <th>Target Serial (SN)</th>
                                 <th>Invoice</th>
                                 <th>RRN Reference</th>
@@ -1361,7 +1361,7 @@
                 <div class="doc-section">
                     <h3>1. Webhook Payment Callback</h3>
                     <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5;">
-                        To broadcast payments from your bank core network to registered Soundbox devices, compile a REST API webhook payload and execute an HTTP `POST` request to our gateway route. The gateway automatically translates the Merchant ID (MID), resolves the device's unique topic, and publishes the speech payload via MQTT.
+                        To broadcast payments from your bank core network to registered Soundbox devices, compile a REST API webhook payload and execute an HTTP `POST` request to our gateway route. The gateway automatically translates the Terminal ID (TID), resolves the device's unique topic, and publishes the speech payload via MQTT.
                     </p>
 
                     <div style="font-size: 0.9rem; line-height: 1.5;">
@@ -1382,10 +1382,10 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td class="text-mono">mid</td>
+                                    <td class="text-mono">tid</td>
                                     <td>String</td>
                                     <td style="color:var(--danger); font-weight:bold;">Required</td>
-                                    <td>Merchant ID registered inside the database mapping console.</td>
+                                    <td>Terminal ID registered inside the database mapping console.</td>
                                 </tr>
                                 <tr>
                                     <td class="text-mono">amount</td>
@@ -1425,7 +1425,7 @@
                     <pre class="code-block" id="curl-code">curl -X POST https://your-soundbox-gateway.com/api/payment \
   -H "Content-Type: application/json" \
   -d '{
-    "mid": "102000000105664",
+    "tid": "102000000105664",
     "amount": 250.50,
     "invoice": "402940",
     "rrn": "392040590390",
@@ -1438,7 +1438,7 @@
                         <button class="copy-btn" onclick="copyCode('js-code')">Copy Code</button>
                     </div>
                     <pre class="code-block" id="js-code">const payload = {
-  mid: "102000000105664",
+  tid: "102000000105664",
   amount: 250.50,
   invoice: "402940",
   rrn: "392040590390",
@@ -1463,7 +1463,7 @@ fetch('https://your-soundbox-gateway.com/api/payment', {
 
 url = "https://your-soundbox-gateway.com/api/payment"
 payload = {
-    "mid": "102000000105664",
+    "tid": "102000000105664",
     "amount": 250.50,
     "invoice": "402940",
     "rrn": "392040590390",
@@ -1545,7 +1545,7 @@ print("Response JSON:", response.json())</pre>
             document.getElementById('sim-invoice').value = Math.floor(100000 + Math.random() * 900000);
             document.getElementById('sim-rrn').value = Math.floor(100000000000 + Math.random() * 900000000000);
             document.getElementById('sim-card').value = '4321-xxxx-xxxx-' + Math.floor(1000 + Math.random() * 9000);
-            document.getElementById('sim-mid').value = '102000000105664';
+            document.getElementById('sim-tid').value = '102000000105664';
             document.getElementById('sim-amount').value = '250.00';
 
             // Document endpoint rewrite
@@ -1557,15 +1557,15 @@ print("Response JSON:", response.json())</pre>
         });
 
         // Setup preset parameters
-        function applyPreset(amount, mid) {
+        function applyPreset(amount, tid) {
             document.getElementById('sim-amount').value = amount;
-            document.getElementById('sim-mid').value = mid;
+            document.getElementById('sim-tid').value = tid;
             document.getElementById('sim-invoice').value = Math.floor(100000 + Math.random() * 900000);
             document.getElementById('sim-rrn').value = Math.floor(100000000000 + Math.random() * 900000000000);
             document.getElementById('sim-card').value = '4321-xxxx-xxxx-' + Math.floor(1000 + Math.random() * 9000);
             
             showToast('Preset payload loaded! Press trigger button.', 'success');
-            logConsole('sys', `Loaded Quick Preset: ৳${amount} BDT for MID ${mid}`);
+            logConsole('sys', `Loaded Quick Preset: ৳${amount} BDT for TID ${tid}`);
         }
 
         // Show Toast Notifications
@@ -1686,14 +1686,14 @@ print("Response JSON:", response.json())</pre>
                 const activeStyle = (item.sn === mockSn) ? 'style="border-left: 4px solid var(--primary); font-weight:bold;"' : '';
                 
                 row.innerHTML = `
-                    <td ${activeStyle} class="text-mono">${item.mid}</td>
+                    <td ${activeStyle} class="text-mono">${item.tid}</td>
                     <td class="text-mono" style="color:var(--primary); font-weight:600; cursor:pointer;" onclick="loadMockDevice('${item.sn}')">${item.sn}</td>
                     <td>${item.merchant_name || 'N/A'}</td>
                     <td class="text-mono">topic_${item.sn}</td>
                     <td style="text-align:right;">
                         <div style="display:inline-flex; gap:0.5rem;">
                             <button class="btn-morphic btn-morphic-sm" onclick="loadMockDevice('${item.sn}')">Mock</button>
-                            <button class="btn-morphic btn-morphic-danger btn-morphic-sm" onclick="deleteMapping('${item.mid}')">Delete</button>
+                            <button class="btn-morphic btn-morphic-danger btn-morphic-sm" onclick="deleteMapping('${item.tid}')">Delete</button>
                         </div>
                     </td>
                 `;
@@ -1709,7 +1709,7 @@ print("Response JSON:", response.json())</pre>
                 return;
             }
             const filtered = activeMappings.filter(item => 
-                item.mid.toLowerCase().includes(query) ||
+                item.tid.toLowerCase().includes(query) ||
                 item.sn.toLowerCase().includes(query) ||
                 (item.merchant_name && item.merchant_name.toLowerCase().includes(query))
             );
@@ -1720,7 +1720,7 @@ print("Response JSON:", response.json())</pre>
             document.getElementById('simulated-sn').textContent = sn;
             const mapping = activeMappings.find(m => m.sn === sn);
             if (mapping) {
-                document.getElementById('sim-mid').value = mapping.mid;
+                document.getElementById('sim-tid').value = mapping.tid;
                 document.getElementById('scr-line1').textContent = (mapping.merchant_name || 'MTB SOUNDBOX').substring(0, 16).toUpperCase();
                 document.getElementById('scr-line2').textContent = 'Ready...';
                 logConsole('sys', `Virtual Soundbox linked to Serial SN: ${sn}`);
@@ -1735,12 +1735,12 @@ print("Response JSON:", response.json())</pre>
         // Submit mapping
         async function handleMappingSubmit(e) {
             e.preventDefault();
-            const mid = document.getElementById('mid-input').value.trim();
+            const tid = document.getElementById('tid-input').value.trim();
             const sn = document.getElementById('sn-input').value.trim();
             const merchant_name = document.getElementById('merchant-name-input').value.trim();
 
-            if (!mid || !sn) {
-                showToast('MID and Serial SN are required', 'error');
+            if (!tid || !sn) {
+                showToast('TID and Serial SN are required', 'error');
                 return;
             }
 
@@ -1748,15 +1748,15 @@ print("Response JSON:", response.json())</pre>
                 const response = await fetch('/api/mappings', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ mid, sn, merchant_name })
+                    body: JSON.stringify({ tid, sn, merchant_name })
                 });
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Request rejected');
 
                 showToast('Device mapping synchronized successfully', 'success');
-                logConsole('sys', `Updated Mapping: MID [${mid}] ➔ Serial [${sn}]`);
+                logConsole('sys', `Updated Mapping: TID [${tid}] ➔ Serial [${sn}]`);
                 
-                document.getElementById('mid-input').value = '';
+                document.getElementById('tid-input').value = '';
                 document.getElementById('sn-input').value = '';
                 document.getElementById('merchant-name-input').value = '';
                 
@@ -1768,13 +1768,13 @@ print("Response JSON:", response.json())</pre>
         }
 
         // Delete mapping
-        async function deleteMapping(mid) {
-            if (!confirm(`Are you sure you want to remove the mapped device for MID: ${mid}?`)) return;
+        async function deleteMapping(tid) {
+            if (!confirm(`Are you sure you want to remove the mapped device for TID: ${tid}?`)) return;
             try {
-                const response = await fetch(`/api/mappings/${mid}`, { method: 'DELETE' });
+                const response = await fetch(`/api/mappings/${tid}`, { method: 'DELETE' });
                 if (!response.ok) throw new Error('Delete rejected');
                 showToast('Device mapping deleted', 'success');
-                logConsole('sys', `Deleted Device Mapping for MID: ${mid}`);
+                logConsole('sys', `Deleted Device Mapping for TID: ${tid}`);
                 fetchMappings();
             } catch (err) {
                 showToast(`Delete failed: ${err.message}`, 'error');
@@ -1825,7 +1825,7 @@ print("Response JSON:", response.json())</pre>
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${timeLabel}</td>
-                    <td class="text-mono">${tx.mid}</td>
+                    <td class="text-mono">${tx.tid}</td>
                     <td class="text-mono">${tx.sn}</td>
                     <td class="text-mono">${tx.invoice}</td>
                     <td class="text-mono">${tx.rrn}</td>
@@ -1847,7 +1847,7 @@ print("Response JSON:", response.json())</pre>
             const filtered = allTransactions.filter(tx => 
                 tx.invoice.toLowerCase().includes(query) ||
                 tx.rrn.toLowerCase().includes(query) ||
-                tx.mid.toLowerCase().includes(query) ||
+                tx.tid.toLowerCase().includes(query) ||
                 tx.sn.toLowerCase().includes(query) ||
                 (tx.card_number && tx.card_number.toLowerCase().includes(query)) ||
                 (tx.merchant_name && tx.merchant_name.toLowerCase().includes(query))
@@ -1919,20 +1919,20 @@ print("Response JSON:", response.json())</pre>
         // Webhook Simulation Call
         async function handleWebhookSubmit(e) {
             e.preventDefault();
-            const mid = document.getElementById('sim-mid').value.trim();
+            const tid = document.getElementById('sim-tid').value.trim();
             const amount = parseFloat(document.getElementById('sim-amount').value).toFixed(2);
             const invoice = document.getElementById('sim-invoice').value.trim();
             const rrn = document.getElementById('sim-rrn').value.trim();
             const card_number = document.getElementById('sim-card').value.trim();
 
-            logConsole('in', `Post Payment to MID: ${mid} | Value: ৳${amount} BDT`);
+            logConsole('in', `Post Payment to TID: ${tid} | Value: ৳${amount} BDT`);
 
             try {
                 const response = await fetch('/api/payment', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        mid,
+                        tid,
                         amount,
                         invoice,
                         rrn,
@@ -2016,7 +2016,7 @@ print("Response JSON:", response.json())</pre>
 
         // Excel Mappings template download
         function downloadTemplate() {
-            const headers = [["mid", "sn", "merchant_name"]];
+            const headers = [["tid", "sn", "merchant_name"]];
             const worksheet = XLSX.utils.aoa_to_sheet(headers);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "InventoryTemplate");
@@ -2039,13 +2039,13 @@ print("Response JSON:", response.json())</pre>
 
                     // Map columns
                     const mappings = rows.map(r => ({
-                        mid: r.mid || r.MID || r.MerchantID || '',
+                        tid: r.tid || r.TID || r.MerchantID || '',
                         sn: r.sn || r.SN || r.SerialNumber || '',
                         merchant_name: r.merchant_name || r.MerchantName || r.Store || 'N/A'
-                    })).filter(x => x.mid && x.sn);
+                    })).filter(x => x.tid && x.sn);
 
                     if (mappings.length === 0) {
-                        throw new Error('No valid mappings found. Check column headers (mid, sn).');
+                        throw new Error('No valid mappings found. Check column headers (tid, sn).');
                     }
 
                     const response = await fetch('/api/mappings/batch', {
@@ -2075,7 +2075,7 @@ print("Response JSON:", response.json())</pre>
                 return;
             }
             const cleanList = activeMappings.map(x => ({
-                'Merchant ID (MID)': x.mid,
+                'Terminal ID (TID)': x.tid,
                 'Device Serial (SN)': x.sn,
                 'Merchant Title': x.merchant_name || 'N/A',
                 'MQTT Topic': `topic_${x.sn}`,
@@ -2097,7 +2097,7 @@ print("Response JSON:", response.json())</pre>
             }
             const cleanLogs = allTransactions.map(t => ({
                 'Timestamp': new Date(t.time).toLocaleString(),
-                'Merchant MID': t.mid,
+                'Terminal TID': t.tid,
                 'Merchant Name': t.merchant_name,
                 'Target Serial (SN)': t.sn,
                 'Invoice Ref': t.invoice,

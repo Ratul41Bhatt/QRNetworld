@@ -69,8 +69,8 @@ if (dbType === 'local') {
     // Initialize local database file if not exists
     if (!fs.existsSync(LOCAL_DB_PATH)) {
         fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify({
-            "102000000000040": {
-                "mid": "102000000000040",
+            "20501603": {
+                "tid": "20501603",
                 "sn": "161P12345678",
                 "merchant_name": "Demo Merchant Store",
                 "updated_at": new Date().toISOString()
@@ -147,10 +147,10 @@ function writeLocalDb(data) {
     fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(data, null, 2));
 }
 
-async function getMappingByMID(mid) {
+async function getMappingByTID(tid) {
     if (dbType === 'firebase') {
         try {
-            const doc = await db.collection('mappings').doc(mid).get();
+            const doc = await db.collection('mappings').doc(tid).get();
             if (doc.exists) {
                 return doc.data();
             }
@@ -160,7 +160,7 @@ async function getMappingByMID(mid) {
         return null;
     } else {
         const localDb = readLocalDb();
-        return localDb[mid] ? localDb[mid] : null;
+        return localDb[tid] ? localDb[tid] : null;
     }
 }
 
@@ -178,30 +178,30 @@ async function getAllMappings() {
     }
 }
 
-async function setMapping(mid, sn, merchant_name) {
+async function setMapping(tid, sn, merchant_name) {
     const data = {
-        mid,
+        tid,
         sn,
         merchant_name: merchant_name || 'N/A',
         updated_at: new Date().toISOString()
     };
 
     if (dbType === 'firebase') {
-        await db.collection('mappings').doc(mid).set(data);
+        await db.collection('mappings').doc(tid).set(data);
     } else {
         const localDb = readLocalDb();
-        localDb[mid] = data;
+        localDb[tid] = data;
         writeLocalDb(localDb);
     }
     return data;
 }
 
-async function deleteMapping(mid) {
+async function deleteMapping(tid) {
     if (dbType === 'firebase') {
-        await db.collection('mappings').doc(mid).delete();
+        await db.collection('mappings').doc(tid).delete();
     } else {
         const localDb = readLocalDb();
-        delete localDb[mid];
+        delete localDb[tid];
         writeLocalDb(localDb);
     }
 }
@@ -239,24 +239,25 @@ app.get('/api/status', (req, res) => {
 
 // Bank Payment Callback Webhook
 app.post('/api/payment', async (req, res) => {
-    const { amount, card_number, time, invoice, rrn, mid } = req.body;
+    const { amount, card_number, time, invoice, rrn, tid, mid } = req.body;
+    const lookupKey = tid || mid;
 
     console.log('\n--- Received Payment Callback ---');
     console.log(`Payload:`, req.body);
 
-    if (!mid || !amount) {
-        return res.status(400).json({ error: 'Missing required parameters: mid and amount' });
+    if (!lookupKey || !amount) {
+        return res.status(400).json({ error: 'Missing required parameters: tid (or mid) and amount' });
     }
 
     try {
-        // Step 1: Look up Device Serial Number (SN) mapped to the Merchant ID (MID)
-        const mapping = await getMappingByMID(mid);
+        // Step 1: Look up Device Serial Number (SN) mapped to the Terminal ID (TID)
+        const mapping = await getMappingByTID(lookupKey);
         if (!mapping) {
-            console.warn(`[API WARNING] No registered Q161Pro device found mapping to MID: ${mid}`);
+            console.warn(`[API WARNING] No registered Q161Pro device found mapping to TID/MID: ${lookupKey}`);
             
             // Record failed transaction attempt
             const tx = {
-                mid,
+                tid: lookupKey,
                 merchant_name: 'Unknown Merchant',
                 sn: 'N/A',
                 amount: parseFloat(amount).toFixed(2),
@@ -268,15 +269,15 @@ app.post('/api/payment', async (req, res) => {
             };
             await recordTransaction(tx);
             
-            return res.status(404).json({ error: `No registered device found for Merchant ID ${mid}` });
+            return res.status(404).json({ error: `No registered device found for ID ${lookupKey}` });
         }
 
         const sn = mapping.sn;
         const merchant_name = mapping.merchant_name || 'N/A';
-        console.log(`[API Lookup Success] MID ${mid} maps to Device SN: ${sn}`);
+        console.log(`[API Lookup Success] ID ${lookupKey} maps to Device SN: ${sn}`);
 
-        // Step 2: Publish notification payload via MQTT to topic_{sn}
-        const topic = `topic_${sn}`;
+        // Step 2: Publish notification payload via MQTT to topic_{tid}
+        const topic = `topic_${lookupKey}`;
         const payload = JSON.stringify({
             amount: parseFloat(amount).toFixed(2),
             invoice: invoice || '000000',
@@ -293,7 +294,7 @@ app.post('/api/payment', async (req, res) => {
             
             // Record successful transaction
             const tx = {
-                mid,
+                tid: lookupKey,
                 merchant_name,
                 sn,
                 amount: parseFloat(amount).toFixed(2),
@@ -340,12 +341,13 @@ app.get('/api/mappings', async (req, res) => {
 });
 
 app.post('/api/mappings', async (req, res) => {
-    const { mid, sn, merchant_name } = req.body;
-    if (!mid || !sn) {
-        return res.status(400).json({ error: 'mid and sn are required fields' });
+    const { tid, mid, sn, merchant_name } = req.body;
+    const lookupKey = tid || mid;
+    if (!lookupKey || !sn) {
+        return res.status(400).json({ error: 'tid and sn are required fields' });
     }
     try {
-        const mapping = await setMapping(mid, sn, merchant_name);
+        const mapping = await setMapping(lookupKey, sn, merchant_name);
         res.json({ success: true, mapping });
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -362,9 +364,10 @@ app.post('/api/mappings/batch', async (req, res) => {
     try {
         const list = [];
         for (const item of mappings) {
-            const { mid, sn, merchant_name } = item;
-            if (mid && sn) {
-                const mapping = await setMapping(mid.toString().trim(), sn.toString().trim(), merchant_name ? merchant_name.toString().trim() : 'N/A');
+            const { tid, mid, sn, merchant_name } = item;
+            const lookupKey = tid || mid;
+            if (lookupKey && sn) {
+                const mapping = await setMapping(lookupKey.toString().trim(), sn.toString().trim(), merchant_name ? merchant_name.toString().trim() : 'N/A');
                 list.push(mapping);
             }
         }
@@ -374,11 +377,11 @@ app.post('/api/mappings/batch', async (req, res) => {
     }
 });
 
-app.delete('/api/mappings/:mid', async (req, res) => {
-    const { mid } = req.params;
+app.delete('/api/mappings/:tid', async (req, res) => {
+    const { tid } = req.params;
     try {
-        await deleteMapping(mid);
-        res.json({ success: true, message: `Mapping for MID ${mid} deleted.` });
+        await deleteMapping(tid);
+        res.json({ success: true, message: `Mapping for TID ${tid} deleted.` });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
