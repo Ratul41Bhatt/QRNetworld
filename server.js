@@ -276,42 +276,55 @@ app.post('/api/payment', async (req, res) => {
         const merchant_name = mapping.merchant_name || 'N/A';
         console.log(`[API Lookup Success] ID ${lookupKey} maps to Device SN: ${sn}`);
 
-        // Step 2: Publish notification payload via MQTT to topic_{sn}
-        const topic = `topic_${sn}`;
+        // Step 2: Publish notification payload via MQTT to all candidate topics
+        // 1. topic_${sn} (e.g. topic_00078000573)
+        // 2. topic_161P${sn} (e.g. topic_161P00078000573)
+        // 3. topic_${lookupKey} (e.g. topic_20501603)
+        const topics = new Set();
+        topics.add(`topic_${sn}`);
+        if (!sn.startsWith('161P')) {
+            topics.add(`topic_161P${sn}`);
+        }
+        topics.add(`topic_${lookupKey}`);
+
         const payload = JSON.stringify({
             amount: parseFloat(amount).toFixed(2),
             invoice: invoice || '000000',
             rrn: rrn || '000000000000'
         });
 
-        mqttClient.publish(topic, payload, { qos: 0 }, async (err) => {
-            if (err) {
-                console.error(`[MQTT Publish Error] Failed to publish message to ${topic}:`, err.message);
-                return res.status(500).json({ error: 'Failed to publish message to MQTT broker' });
-            }
+        console.log(`Publishing payment notification to topics:`, Array.from(topics));
 
-            console.log(`[MQTT Publish Success] Sent payload to topic [${topic}]: ${payload}`);
-            
-            // Record successful transaction
-            const tx = {
-                tid: lookupKey,
-                merchant_name,
-                sn,
-                amount: parseFloat(amount).toFixed(2),
-                invoice: invoice || '000000',
-                rrn: rrn || '000000000000',
-                card_number: card_number || 'N/A',
-                time: time || new Date().toISOString(),
-                status: 'success'
-            };
-            await recordTransaction(tx);
-
-            return res.json({
-                success: true,
-                message: 'Notification pushed successfully to soundbox device',
-                target_device_sn: sn,
-                topic: topic
+        // Publish to all candidate topics
+        topics.forEach(t => {
+            mqttClient.publish(t, payload, { qos: 0 }, (err) => {
+                if (err) {
+                    console.error(`[MQTT Publish Error] Failed to publish message to ${t}:`, err.message);
+                } else {
+                    console.log(`[MQTT Publish Success] Sent payload to topic [${t}]: ${payload}`);
+                }
             });
+        });
+
+        // Record successful transaction
+        const tx = {
+            tid: lookupKey,
+            merchant_name,
+            sn,
+            amount: parseFloat(amount).toFixed(2),
+            invoice: invoice || '000000',
+            rrn: rrn || '000000000000',
+            card_number: card_number || 'N/A',
+            time: time || new Date().toISOString(),
+            status: 'success'
+        };
+        await recordTransaction(tx);
+
+        return res.json({
+            success: true,
+            message: 'Notification pushed successfully to soundbox device candidate topics',
+            target_device_sn: sn,
+            topics: Array.from(topics)
         });
 
     } catch (err) {
