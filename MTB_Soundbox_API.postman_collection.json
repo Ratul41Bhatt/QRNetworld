@@ -1,0 +1,221 @@
+{
+	"info": {
+		"_postman_id": "8b843cd2-96cd-498c-8be9-e09210c4974f",
+		"name": "MTB Soundbox API Gateway",
+		"description": "API collection to test and simulate Mutual Trust Bank (MTB) Soundbox Gateway webhook notifications and device mapping database records.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Gateway Diagnostics",
+			"item": [
+				{
+					"name": "Get Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/status",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"status"
+							]
+						},
+						"description": "Returns connection status of the Firebase database and MQTT broker."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Payment Webhook Simulation",
+			"item": [
+				{
+					"name": "Trigger Payment Callback (Success Scenario)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"amount\": \"250.00\",\n    \"invoice\": \"123456\",\n    \"rrn\": \"777888999000\",\n    \"tid\": \"20501603\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/payment",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"payment"
+							]
+						},
+						"description": "Simulates a payment webhook trigger. The gateway automatically translates the TID, resolves the device SN, and publishes the notification payload to multiple MQTT topics."
+					},
+					"response": []
+				},
+				{
+					"name": "Trigger Payment Callback (Unmapped TID Scenario)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"amount\": \"150.00\",\n    \"invoice\": \"654321\",\n    \"rrn\": \"999888777666\",\n    \"tid\": \"99999999\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/payment",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"payment"
+							]
+						},
+						"description": "Simulates a webhook trigger with an unmapped TID to verify that the gateway records the transaction history as failed."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Device Mapping Inventory",
+			"item": [
+				{
+					"name": "Get All Mappings",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/mappings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mappings"
+							]
+						},
+						"description": "Gets all registered TID-to-SN device mappings from the database."
+					},
+					"response": []
+				},
+				{
+					"name": "Register Device Mapping",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"tid\": \"20501603\",\n    \"sn\": \"00078000573\",\n    \"merchant_name\": \"Mutual Trust Bank Store\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/mappings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mappings"
+							]
+						},
+						"description": "Registers a mapping between a Terminal ID (TID) and a device Serial Number (SN)."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Device Mapping",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/mappings/20501603",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"mappings",
+								"20501603"
+							]
+						},
+						"description": "Deletes a device mapping from the database by its TID."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Transaction History",
+			"item": [
+				{
+					"name": "Get Transaction History",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/transactions",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"transactions"
+							]
+						},
+						"description": "Gets the history log of simulated payment webhook transactions."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://mtb-soundbox-backend.vercel.app",
+			"type": "string"
+		}
+	]
+}
