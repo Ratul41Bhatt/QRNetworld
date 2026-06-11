@@ -1072,15 +1072,15 @@
                         </h2>
                         
                         <div class="quick-presets">
-                            <button class="btn-morphic btn-morphic-sm" onclick="applyPreset(10, '102000000105664')">৳10 Auto Preset</button>
-                            <button class="btn-morphic btn-morphic-sm" onclick="applyPreset(500, '102000000105664')">৳500 Auto Preset</button>
-                            <button class="btn-morphic btn-morphic-sm" onclick="applyPreset(2450.75, '102000000105664')">৳2,450.75 Auto Preset</button>
+                            <button class="btn-morphic btn-morphic-sm" onclick="applyPreset(10, '20501603')">৳10 Auto Preset</button>
+                            <button class="btn-morphic btn-morphic-sm" onclick="applyPreset(500, '20501603')">৳500 Auto Preset</button>
+                            <button class="btn-morphic btn-morphic-sm" onclick="applyPreset(2450.75, '20501603')">৳2,450.75 Auto Preset</button>
                         </div>
 
                         <form id="webhook-form">
                             <div class="form-group">
                                 <label for="sim-tid">Target Terminal ID (TID)</label>
-                                <input type="text" id="sim-tid" class="form-control" required placeholder="e.g. 102000000105664">
+                                <input type="text" id="sim-tid" class="form-control" required placeholder="e.g. 20501603">
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
@@ -1180,7 +1180,7 @@
                     <form id="mapping-form">
                         <div class="form-group">
                             <label for="tid-input">Terminal ID (TID)</label>
-                            <input type="text" id="tid-input" class="form-control" required placeholder="e.g. 102000000105664">
+                            <input type="text" id="tid-input" class="form-control" required placeholder="e.g. 20501603">
                         </div>
                         <div class="form-group">
                             <label for="sn-input">Soundbox Serial (SN)</label>
@@ -1425,7 +1425,7 @@
                     <pre class="code-block" id="curl-code">curl -X POST https://your-soundbox-gateway.com/api/payment \
   -H "Content-Type: application/json" \
   -d '{
-    "tid": "102000000105664",
+    "tid": "20501603",
     "amount": 250.50,
     "invoice": "402940",
     "rrn": "392040590390",
@@ -1438,7 +1438,7 @@
                         <button class="copy-btn" onclick="copyCode('js-code')">Copy Code</button>
                     </div>
                     <pre class="code-block" id="js-code">const payload = {
-  tid: "102000000105664",
+  tid: "20501603",
   amount: 250.50,
   invoice: "402940",
   rrn: "392040590390",
@@ -1463,7 +1463,7 @@ fetch('https://your-soundbox-gateway.com/api/payment', {
 
 url = "https://your-soundbox-gateway.com/api/payment"
 payload = {
-    "tid": "102000000105664",
+    "tid": "20501603",
     "amount": 250.50,
     "invoice": "402940",
     "rrn": "392040590390",
@@ -1545,7 +1545,7 @@ print("Response JSON:", response.json())</pre>
             document.getElementById('sim-invoice').value = Math.floor(100000 + Math.random() * 900000);
             document.getElementById('sim-rrn').value = Math.floor(100000000000 + Math.random() * 900000000000);
             document.getElementById('sim-card').value = '4321-xxxx-xxxx-' + Math.floor(1000 + Math.random() * 9000);
-            document.getElementById('sim-tid').value = '102000000105664';
+            document.getElementById('sim-tid').value = '20501603';
             document.getElementById('sim-amount').value = '250.00';
 
             // Document endpoint rewrite
