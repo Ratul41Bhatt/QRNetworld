@@ -276,8 +276,8 @@ app.post('/api/payment', async (req, res) => {
         const merchant_name = mapping.merchant_name || 'N/A';
         console.log(`[API Lookup Success] ID ${lookupKey} maps to Device SN: ${sn}`);
 
-        // Step 2: Publish notification payload via MQTT to topic_{tid}
-        const topic = `topic_${lookupKey}`;
+        // Step 2: Publish notification payload via MQTT to topic_{sn}
+        const topic = `topic_${sn}`;
         const payload = JSON.stringify({
             amount: parseFloat(amount).toFixed(2),
             invoice: invoice || '000000',

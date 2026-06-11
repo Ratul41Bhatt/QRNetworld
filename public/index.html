@@ -1682,8 +1682,8 @@ print("Response JSON:", response.json())</pre>
 
             list.forEach(item => {
                 const row = document.createElement('tr');
-                const mockSn = document.getElementById('simulated-sn').textContent;
-                const activeStyle = (item.sn === mockSn) ? 'style="border-left: 4px solid var(--primary); font-weight:bold;"' : '';
+                const mockSn = document.getElementById('simulated-sn').textContent.trim();
+                const activeStyle = (item.sn.trim() === mockSn) ? 'style="border-left: 4px solid var(--primary); font-weight:bold;"' : '';
                 
                 row.innerHTML = `
                     <td ${activeStyle} class="text-mono">${item.tid}</td>
@@ -1949,8 +1949,8 @@ print("Response JSON:", response.json())</pre>
                 logConsole('out', `MQTT notification published to: ${data.topic}`);
 
                 // Sync UI simulator
-                const activeMockSn = document.getElementById('simulated-sn').textContent;
-                if (data.target_device_sn === activeMockSn) {
+                const activeMockSn = document.getElementById('simulated-sn').textContent.trim();
+                if (data.target_device_sn && data.target_device_sn.trim() === activeMockSn) {
                     playMockAudioBroadcast(amount);
                 } else {
                     logConsole('sys', `MQTT sent to different serial number [${data.target_device_sn}], virtual Soundbox did not speak.`);
@@ -2008,7 +2008,7 @@ print("Response JSON:", response.json())</pre>
                 device.style.transform = 'none';
                 device.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.8)';
                 
-                const match = activeMappings.find(m => m.sn === document.getElementById('simulated-sn').textContent);
+                const match = activeMappings.find(m => m.sn.trim() === document.getElementById('simulated-sn').textContent.trim());
                 l1.textContent = match ? (match.merchant_name || 'MUTUAL TRUST BANK').substring(0, 16).toUpperCase() : 'MUTUAL TRUST BANK';
                 l2.textContent = 'Ready...';
             }, 4000);
