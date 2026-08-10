@@ -2,1084 +2,1125 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Soundbox - Enterprise Admin & Simulator Console</title>
-    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#eef1f6">
+    <title>QRNet Pay — Soundbox Console</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- SheetJS (Excel Parsing and Writing) -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <!-- Chart.js (Analytics Line Chart) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
     <style>
         :root {
-            --bg-primary: #020617;
-            --bg-glass-card: rgba(15, 23, 42, 0.45);
-            --bg-glass-card-hover: rgba(30, 41, 59, 0.55);
-            --border-glass: rgba(255, 255, 255, 0.08);
-            --border-glass-hover: rgba(255, 255, 255, 0.16);
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --primary: #0071e3;
-            --primary-glow: rgba(0, 113, 227, 0.35);
-            --accent: #34c759;
-            --accent-glow: rgba(52, 199, 89, 0.25);
+            /* Soft UI canvas */
+            --canvas: #eef1f6;
+            --canvas-2: #e7ebf2;
+            --card: #f2f5fa;
+            --card-solid: #f7f9fc;
+
+            /* Neumorphic light/shadow pair */
+            --sh-dark: rgba(163, 177, 198, 0.55);
+            --sh-light: rgba(255, 255, 255, 0.92);
+            --sh-dark-soft: rgba(163, 177, 198, 0.32);
+
+            --raise: 7px 7px 16px var(--sh-dark), -7px -7px 16px var(--sh-light);
+            --raise-sm: 4px 4px 9px var(--sh-dark-soft), -4px -4px 9px var(--sh-light);
+            --press: inset 4px 4px 9px var(--sh-dark), inset -4px -4px 9px var(--sh-light);
+            --press-sm: inset 3px 3px 6px var(--sh-dark-soft), inset -3px -3px 6px var(--sh-light);
+
+            /* Apple system accents */
+            --primary: #007aff;
+            --primary-soft: rgba(0, 122, 255, 0.12);
+            --accent: #30c66b;
+            --accent-soft: rgba(48, 198, 107, 0.14);
+            --warning: #ff9f0a;
             --danger: #ff3b30;
-            --danger-glow: rgba(255, 59, 48, 0.25);
-            --warning: #ff9500;
-            --terminal-bg: #05070f;
-            --font-mono: 'JetBrains Mono', monospace;
+            --danger-soft: rgba(255, 59, 48, 0.12);
+            --purple: #7b61ff;
+
+            --text-primary: #1d2330;
+            --text-secondary: #6a7686;
+            --text-faint: #98a2b3;
+
+            --hairline: rgba(163, 177, 198, 0.28);
+
+            --font-body: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
+            --font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', monospace;
+
+            --radius-xl: 26px;
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --radius-sm: 11px;
+
+            --shell-pad: 2rem;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --canvas: #22262e;
+                --canvas-2: #1e222a;
+                --card: #262b34;
+                --card-solid: #2a2f39;
+                --sh-dark: rgba(0, 0, 0, 0.55);
+                --sh-light: rgba(255, 255, 255, 0.055);
+                --sh-dark-soft: rgba(0, 0, 0, 0.35);
+                --text-primary: #f0f3f8;
+                --text-secondary: #a6b0c0;
+                --text-faint: #7c8798;
+                --hairline: rgba(255, 255, 255, 0.08);
+                --primary: #0a84ff;
+                --accent: #32d74b;
+                --danger: #ff453a;
+                --warning: #ffd60a;
+            }
         }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { -webkit-text-size-adjust: 100%; }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-primary);
+            font-family: var(--font-body);
+            background: var(--canvas);
             color: var(--text-primary);
-            height: 100vh;
+            height: 100dvh;
             display: flex;
             overflow: hidden;
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(0, 113, 227, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(147, 51, 234, 0.12) 0%, transparent 45%),
-                radial-gradient(circle at 50% 50%, rgba(52, 199, 89, 0.06) 0%, transparent 50%);
-            background-attachment: fixed;
+            font-size: 15px;
+            line-height: 1.5;
+            letter-spacing: -0.01em;
+            -webkit-font-smoothing: antialiased;
         }
 
-        /* Nav Sidebar styling */
+        ::selection { background: var(--primary-soft); }
+
+        :focus-visible {
+            outline: 2.5px solid var(--primary);
+            outline-offset: 2px;
+            border-radius: 8px;
+        }
+
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb {
+            background: var(--sh-dark);
+            border-radius: 99px;
+            border: 3px solid transparent;
+            background-clip: content-box;
+        }
+
+        /* ---------- Sidebar ---------- */
         .sidebar {
-            width: 280px;
-            background: rgba(15, 23, 42, 0.35);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border-right: 1px solid var(--border-glass);
+            width: 262px;
+            flex-shrink: 0;
+            background: var(--canvas);
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            padding: 2rem 1.5rem;
-            z-index: 100;
-            flex-shrink: 0;
+            padding: 1.5rem 1rem 1.25rem;
+            z-index: 200;
         }
 
         .sidebar-brand {
             display: flex;
             align-items: center;
-            gap: 0.85rem;
-            margin-bottom: 3rem;
+            gap: 0.8rem;
+            margin: 0 0.35rem 1.75rem;
             text-decoration: none;
         }
 
         .brand-logo {
-            width: 2.5rem;
-            height: 2.5rem;
-            background: linear-gradient(135deg, var(--primary), #a855f7);
-            border-radius: 0.75rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 1.35rem;
-            color: white;
-            box-shadow: 0 4px 15px var(--primary-glow);
+            width: 2.75rem;
+            height: 2.75rem;
+            flex-shrink: 0;
+            border-radius: 15px;
+            display: grid;
+            place-items: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: #fff;
+            letter-spacing: -0.03em;
+            background: linear-gradient(160deg, #0a8bff 0%, #0057d9 100%);
+            box-shadow: 5px 5px 12px rgba(0, 87, 217, 0.28), -4px -4px 10px var(--sh-light), inset 0 1px 0 rgba(255,255,255,0.4);
         }
 
-        .brand-text h1 {
-            font-size: 1.15rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-            background: linear-gradient(to right, #ffffff, #cbd5e1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        .brand-text h1 { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.025em; line-height: 1.2; }
+        .brand-text p { font-size: 0.7rem; color: var(--text-faint); font-weight: 500; margin-top: 1px; }
 
-        .brand-text p {
-            font-size: 0.7rem;
-            color: var(--text-secondary);
-            font-weight: 500;
+        .nav-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            color: var(--text-faint);
+            margin: 0 0.9rem 0.65rem;
         }
 
-        .sidebar-menu {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            flex: 1;
-        }
+        .sidebar-menu { display: flex; flex-direction: column; gap: 0.45rem; flex: 1; overflow-y: auto; min-height: 0; padding: 0.15rem; }
 
         .menu-item {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            padding: 0.85rem 1.25rem;
-            border-radius: 0.75rem;
+            gap: 0.8rem;
+            padding: 0.78rem 0.95rem;
+            border-radius: var(--radius-md);
             color: var(--text-secondary);
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            border: 1px solid transparent;
             cursor: pointer;
+            background: transparent;
+            transition: color .25s ease, box-shadow .3s ease, background .25s ease;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .menu-item svg {
-            width: 1.25rem;
-            height: 1.25rem;
-            transition: transform 0.3s ease;
-        }
+        .menu-item svg { width: 1.2rem; height: 1.2rem; flex-shrink: 0; }
+        .menu-item:hover { color: var(--text-primary); background: var(--card); box-shadow: var(--raise-sm); }
+        .menu-item.active { color: var(--primary); background: var(--canvas); box-shadow: var(--press-sm); }
+        .menu-item.active svg { color: var(--primary); }
 
-        .menu-item:hover {
-            color: white;
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.03);
-        }
-
-        .menu-item:hover svg {
-            transform: translateX(2px);
-        }
-
-        .menu-item.active {
-            color: white;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
-            border: 1px solid var(--border-glass-hover);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        }
-
-        .menu-item.active svg {
-            color: var(--primary);
-        }
-
-        .sidebar-footer {
-            margin-top: auto;
-            border-top: 1px solid var(--border-glass);
-            padding-top: 1.5rem;
-        }
+        .sidebar-footer { margin-top: 1rem; padding-top: 0.25rem; }
 
         .connection-card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-glass);
-            border-radius: 0.75rem;
-            padding: 0.85rem;
+            background: var(--canvas);
+            border-radius: var(--radius-md);
+            box-shadow: var(--press-sm);
+            padding: 0.85rem 0.9rem;
             display: flex;
             flex-direction: column;
-            gap: 0.5rem;
-            font-size: 0.75rem;
+            gap: 0.6rem;
+            font-size: 0.76rem;
+            color: var(--text-secondary);
+            font-weight: 500;
         }
 
-        .connection-status {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
+        .connection-status { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: var(--text-secondary);
+            width: 9px; height: 9px; border-radius: 50%;
+            background-color: var(--text-faint);
+            flex-shrink: 0;
         }
-
-        .status-dot.online {
-            background-color: var(--accent);
-            box-shadow: 0 0 10px var(--accent-glow);
-        }
-
-        .status-dot.offline {
-            background-color: var(--danger);
-            box-shadow: 0 0 10px var(--danger-glow);
-        }
+        .status-dot.online { background-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+        .status-dot.offline { background-color: var(--danger); box-shadow: 0 0 0 3px var(--danger-soft); }
 
         .badge-type {
-            font-size: 0.6rem;
-            font-weight: 800;
-            padding: 0.15rem 0.4rem;
-            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.62rem;
+            font-weight: 700;
+            padding: 0.18rem 0.5rem;
+            border-radius: 999px;
             text-transform: uppercase;
+            background: var(--card);
+            color: var(--text-secondary);
+            box-shadow: var(--raise-sm);
         }
-        .badge-firebase {
-            background: rgba(245, 158, 11, 0.2);
-            color: #f59e0b;
-            border: 1px solid rgba(245, 158, 11, 0.3);
-        }
-        .badge-local {
-            background: rgba(59, 130, 246, 0.2);
-            color: #3b82f6;
-            border: 1px solid rgba(59, 130, 246, 0.3);
-        }
+        .badge-firebase { color: var(--warning); }
+        .badge-local { color: var(--primary); }
+        .badge-mysql { color: var(--accent); }
 
-        /* Main view wrapper */
-        .content-area {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+        /* ---------- Shell ---------- */
+        .content-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
 
-        /* Glassmorphic Navbar */
         .navbar {
-            height: 80px;
-            border-bottom: 1px solid var(--border-glass);
-            background: rgba(10, 15, 29, 0.3);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            padding: 0 2.5rem;
+            height: 74px;
+            flex-shrink: 0;
+            background: var(--canvas);
+            padding: 0 var(--shell-pad);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            z-index: 90;
+            gap: 1rem;
+            z-index: 120;
         }
+
+        .navbar-left { display: flex; align-items: center; gap: 0.85rem; min-width: 0; }
+
+        .nav-toggle {
+            display: none;
+            width: 2.6rem; height: 2.6rem;
+            border-radius: var(--radius-sm);
+            border: none;
+            background: var(--card);
+            box-shadow: var(--raise-sm);
+            color: var(--text-primary);
+            cursor: pointer;
+            place-items: center;
+            flex-shrink: 0;
+        }
+        .nav-toggle:active { box-shadow: var(--press-sm); }
+        .nav-toggle svg { width: 1.2rem; height: 1.2rem; }
 
         .navbar-title {
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: white;
-            letter-spacing: -0.01em;
-        }
-
-        .navbar-actions {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .user-avatar {
-            width: 2.25rem;
-            height: 2.25rem;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--border-glass);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            font-size: 1.15rem;
             font-weight: 700;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        /* Dashboard Pages Grid */
-        .page-view {
-            display: none;
-            flex: 1;
-            padding: 2.5rem;
-            overflow-y: auto;
-            min-height: 0;
-        }
-
-        .page-view.active {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-            animation: fadeIn 0.4s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Glass Panel Container */
-        .glass-panel {
-            background: var(--bg-glass-card);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border-glass);
-            border-radius: 1.25rem;
-            padding: 2rem;
-            box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.4);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-        }
-
-        .glass-panel:hover {
-            border-color: var(--border-glass-hover);
-            box-shadow: 0 15px 50px -10px rgba(0, 0, 0, 0.5);
-        }
-
-        .panel-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: white;
-            display: flex;
-            align-items: center;
-            gap: 0.65rem;
-            margin-bottom: 1.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding-bottom: 0.85rem;
-        }
-
-        .panel-title svg {
-            width: 1.35rem;
-            height: 1.35rem;
-            color: var(--primary);
-        }
-
-        /* Forms inputs */
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 1.25rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            margin-bottom: 1.25rem;
-        }
-
-        .form-group label {
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .form-control {
-            width: 100%;
-            background: rgba(5, 7, 15, 0.4);
-            border: 1px solid var(--border-glass);
-            border-radius: 0.75rem;
-            padding: 0.75rem 1rem;
-            color: white;
-            font-family: inherit;
-            font-size: 0.9rem;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px var(--primary-glow);
-            background: rgba(5, 7, 15, 0.85);
-        }
-
-        /* Premium Morphic Buttons */
-        .btn-morphic {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.65rem;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.75rem;
-            font-size: 0.875rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            text-decoration: none;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
-            color: white;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-            backdrop-filter: blur(8px);
-        }
-
-        .btn-morphic:hover {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
-            border-color: rgba(255, 255, 255, 0.25);
-            transform: translateY(-1.5px);
-            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.05);
-        }
-
-        .btn-morphic:active {
-            transform: translateY(0);
-        }
-
-        .btn-morphic-primary {
-            background: linear-gradient(135deg, rgba(0, 113, 227, 0.6) 0%, rgba(0, 113, 227, 0.25) 100%);
-            border: 1px solid rgba(0, 113, 227, 0.5);
-            box-shadow: 0 4px 20px rgba(0, 113, 227, 0.2);
-        }
-
-        .btn-morphic-primary:hover {
-            background: linear-gradient(135deg, rgba(0, 113, 227, 0.8) 0%, rgba(0, 113, 227, 0.35) 100%);
-            border-color: var(--primary);
-            box-shadow: 0 8px 25px rgba(0, 113, 227, 0.4);
-        }
-
-        .btn-morphic-danger {
-            background: linear-gradient(135deg, rgba(255, 59, 48, 0.6) 0%, rgba(255, 59, 48, 0.25) 100%);
-            border: 1px solid rgba(255, 59, 48, 0.5);
-            box-shadow: 0 4px 20px rgba(255, 59, 48, 0.2);
-        }
-
-        .btn-morphic-danger:hover {
-            background: linear-gradient(135deg, rgba(255, 59, 48, 0.8) 0%, rgba(255, 59, 48, 0.35) 100%);
-            border-color: var(--danger);
-            box-shadow: 0 8px 25px rgba(255, 59, 48, 0.4);
-        }
-
-        .btn-morphic-success {
-            background: linear-gradient(135deg, rgba(52, 199, 89, 0.6) 0%, rgba(52, 199, 89, 0.25) 100%);
-            border: 1px solid rgba(52, 199, 89, 0.5);
-            box-shadow: 0 4px 20px rgba(52, 199, 89, 0.2);
-        }
-
-        .btn-morphic-success:hover {
-            background: linear-gradient(135deg, rgba(52, 199, 89, 0.8) 0%, rgba(52, 199, 89, 0.35) 100%);
-            border-color: var(--accent);
-            box-shadow: 0 8px 25px rgba(52, 199, 89, 0.4);
-        }
-
-        .btn-morphic-sm {
-            padding: 0.45rem 1rem;
-            font-size: 0.78rem;
-            border-radius: 0.5rem;
-        }
-
-        /* Mappings & Reports table styling */
-        .table-responsive {
-            overflow-x: auto;
-            width: 100%;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-        }
-
-        th {
-            background: rgba(5, 7, 15, 0.5);
-            color: var(--text-secondary);
-            font-weight: 700;
-            padding: 1rem 1.25rem;
-            border-bottom: 1px solid var(--border-glass);
-            text-transform: uppercase;
-            font-size: 0.68rem;
-            letter-spacing: 0.05em;
-        }
-
-        td {
-            padding: 1rem 1.25rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-            font-size: 0.88rem;
-            color: var(--text-primary);
-        }
-
-        tr:hover td {
-            background: rgba(255, 255, 255, 0.015);
-        }
-
-        .text-mono {
-            font-family: var(--font-mono);
-            font-size: 0.82rem;
-            background: rgba(255, 255, 255, 0.04);
-            padding: 0.15rem 0.4rem;
-            border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        /* KPI Card grids */
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .kpi-card {
-            background: var(--bg-glass-card);
-            border: 1px solid var(--border-glass);
-            border-radius: 1.25rem;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-        }
-
-        .kpi-title {
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .kpi-value {
-            font-size: 1.85rem;
-            font-weight: 800;
-            color: white;
-        }
-
-        .kpi-sub {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-        }
-
-        /* Excel Upload Dropzone */
-        .upload-dropzone {
-            border: 2px dashed rgba(255, 255, 255, 0.15);
-            border-radius: 1rem;
-            padding: 2.5rem 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            background: rgba(0, 113, 227, 0.01);
-            margin-bottom: 1.5rem;
-        }
-
-        .upload-dropzone:hover {
-            border-color: var(--primary);
-            background: rgba(0, 113, 227, 0.04);
-        }
-
-        .upload-dropzone svg {
-            width: 3rem;
-            height: 3rem;
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-            transition: transform 0.3s ease;
-        }
-
-        .upload-dropzone:hover svg {
-            transform: translateY(-3px);
-            color: var(--primary);
-        }
-
-        .upload-title {
-            font-size: 0.95rem;
-            font-weight: 700;
-            margin-bottom: 0.25rem;
-        }
-
-        .upload-sub {
-            font-size: 0.78rem;
-            color: var(--text-secondary);
-        }
-
-        /* Interactive Simulator Layout */
-        .simulator-layout {
-            display: grid;
-            grid-template-columns: 1fr 340px;
-            gap: 2.5rem;
-        }
-
-        @media (max-width: 1024px) {
-            .simulator-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .simulator-controls {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        /* Virtual Device Visualizer */
-        .soundbox-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .soundbox-case {
-            width: 260px;
-            height: 390px;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            border-radius: 2.25rem;
-            border: 4px solid #334155;
-            box-shadow: 
-                0 25px 50px -12px rgba(0, 0, 0, 0.8),
-                0 0 35px rgba(0, 113, 227, 0.12),
-                inset 0 2px 4px rgba(255, 255, 255, 0.1);
-            position: relative;
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .soundbox-led {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: #64748b;
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
-            position: absolute;
-            top: 1.25rem;
-            right: 2rem;
-            transition: all 0.3s ease;
-        }
-
-        .soundbox-led.active {
-            background-color: var(--accent);
-            box-shadow: 0 0 12px var(--accent), inset 0 1px 2px rgba(255, 255, 255, 0.5);
-        }
-
-        .soundbox-led.receiving {
-            background-color: var(--primary);
-            box-shadow: 0 0 15px var(--primary), inset 0 1px 2px rgba(255, 255, 255, 0.5);
-            animation: pulse 0.5s infinite;
-        }
-
-        .soundbox-logo {
-            font-size: 0.72rem;
-            font-weight: 800;
-            color: #94a3b8;
-            letter-spacing: 0.25em;
-            text-transform: uppercase;
-            margin-top: 0.5rem;
-            border-bottom: 2px solid var(--primary);
-            padding-bottom: 0.2rem;
-        }
-
-        .soundbox-screen {
-            width: 100%;
-            height: 85px;
-            background-color: #020617;
-            border: 2px solid #334155;
-            border-radius: 0.75rem;
-            padding: 0.85rem;
-            font-family: var(--font-mono);
-            font-size: 0.78rem;
-            color: #22c55e;
-            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.9);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .soundbox-screen::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
-            background-size: 100% 4px;
-            pointer-events: none;
-        }
-
-        .screen-line-1 {
-            font-weight: 700;
-            color: #4ade80;
+            letter-spacing: -0.03em;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .screen-line-2 {
-            font-size: 1.25rem;
-            text-align: right;
-            color: var(--accent);
-            font-weight: 800;
-            text-shadow: 0 0 5px rgba(52, 199, 89, 0.3);
+        .navbar-actions { display: flex; align-items: center; gap: 1rem; }
+        .user-profile {
+            display: flex; align-items: center; gap: 0.65rem;
+            background: var(--card);
+            box-shadow: var(--raise-sm);
+            border-radius: 999px;
+            padding: 0.35rem 0.9rem 0.35rem 0.35rem;
         }
 
-        .soundbox-grill {
-            width: 100%;
-            height: 110px;
-            background-image: radial-gradient(circle, #020617 30%, transparent 35%);
-            background-size: 6px 6px;
-            opacity: 0.85;
-            border-radius: 1rem;
-            margin-top: 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+        .user-avatar {
+            width: 2.2rem; height: 2.2rem;
+            border-radius: 50%;
+            background: linear-gradient(160deg, #8fa4c0, #6b7f9d);
+            display: grid; place-items: center;
+            font-weight: 700; font-size: 0.76rem; color: #fff;
+            flex-shrink: 0;
         }
 
-        .soundbox-qr-sticker {
-            width: 110px;
-            height: 110px;
-            background-color: white;
-            border-radius: 0.75rem;
-            padding: 0.5rem;
+        .user-meta { font-size: 0.8rem; font-weight: 600; line-height: 1.25; }
+        .user-meta span { display: block; color: var(--text-faint); font-size: 0.68rem; font-weight: 500; }
+
+        /* ---------- Pages ---------- */
+        .page-view {
+            display: none;
+            flex: 1;
+            padding: 0.5rem var(--shell-pad) calc(var(--shell-pad) + env(safe-area-inset-bottom));
+            overflow-y: auto;
+            min-height: 0;
+        }
+        .page-view.active {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            animation: rise .4s cubic-bezier(.16,1,.3,1);
+        }
+        @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+        /* ---------- Cards ---------- */
+        .glass-panel {
+            background: var(--card);
+            border-radius: var(--radius-xl);
+            padding: 1.6rem;
+            box-shadow: var(--raise);
+            min-width: 0;
+        }
+
+        .panel-title {
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
             display: flex;
             align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            margin-bottom: 0.85rem;
-            position: relative;
+            gap: 0.65rem;
+            margin-bottom: 1.35rem;
+        }
+        .panel-title svg {
+            width: 2rem; height: 2rem;
+            padding: 0.45rem;
+            border-radius: 10px;
+            background: var(--canvas);
+            box-shadow: var(--press-sm);
+            color: var(--primary);
+            flex-shrink: 0;
         }
 
-        .soundbox-qr-img {
+        .panel-header {
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 1rem; flex-wrap: wrap; margin-bottom: 1.35rem;
+        }
+        .panel-header .panel-title { margin-bottom: 0; }
+
+        /* ---------- Forms ---------- */
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.25rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.1rem; }
+        .form-group label {
+            font-size: 0.72rem; font-weight: 600; color: var(--text-secondary);
+            letter-spacing: -0.005em; padding-left: 0.2rem;
+        }
+
+        .form-control {
             width: 100%;
-            height: 100%;
-            background: 
-                repeating-linear-gradient(45deg, #000 0px, #000 2px, transparent 2px, transparent 10px),
-                repeating-linear-gradient(-45deg, #000 0px, #000 2px, #fff 2px, #fff 10px);
-            opacity: 0.85;
-        }
-
-        .soundbox-qr-sticker::after {
-            content: 'SCAN MTB';
-            position: absolute;
-            bottom: -8px;
-            background-color: var(--danger);
-            color: white;
-            font-size: 0.55rem;
-            font-weight: 900;
-            padding: 0.15rem 0.5rem;
-            border-radius: 0.35rem;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            white-space: nowrap;
-        }
-
-        .device-info-badge {
-            background-color: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-glass);
-            padding: 0.85rem;
-            border-radius: 0.75rem;
-            width: 100%;
-            font-size: 0.75rem;
-            margin-top: 1.5rem;
-        }
-
-        .device-info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.35rem;
-        }
-        .device-info-row:last-child {
-            margin-bottom: 0;
-        }
-
-        /* Terminal Logging screen */
-        .terminal {
-            background-color: var(--terminal-bg);
-            border: 1px solid var(--border-glass);
-            border-radius: 0.75rem;
-            padding: 1.25rem;
+            background: var(--canvas);
+            border: none;
+            border-radius: var(--radius-md);
+            box-shadow: var(--press-sm);
+            padding: 0.8rem 1rem;
+            color: var(--text-primary);
             font-family: var(--font-mono);
-            font-size: 0.8rem;
-            color: #38bdf8;
-            height: 230px;
-            overflow-y: auto;
-            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.8);
+            font-size: 0.86rem;
+            transition: box-shadow .25s ease;
+        }
+        .form-control::placeholder { color: var(--text-faint); }
+        .form-control:focus {
+            outline: none;
+            box-shadow: var(--press-sm), 0 0 0 2.5px var(--primary-soft);
+        }
+
+        /* ---------- Buttons ---------- */
+        .btn-morphic {
+            display: inline-flex; align-items: center; justify-content: center;
+            gap: 0.5rem;
+            padding: 0.72rem 1.2rem;
+            border-radius: var(--radius-md);
+            border: none;
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            cursor: pointer;
+            white-space: nowrap;
+            background: var(--card-solid);
+            color: var(--text-primary);
+            box-shadow: var(--raise-sm);
+            transition: box-shadow .22s ease, transform .18s ease, color .2s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .btn-morphic:hover { transform: translateY(-1px); box-shadow: var(--raise); }
+        .btn-morphic:active { transform: translateY(0); box-shadow: var(--press-sm); }
+        .btn-morphic svg { width: 1rem; height: 1rem; flex-shrink: 0; }
+
+        .btn-morphic-primary {
+            background: linear-gradient(160deg, #0a8bff 0%, #0062e6 100%);
+            color: #fff;
+            box-shadow: 5px 5px 14px rgba(0, 98, 230, 0.32), -4px -4px 12px var(--sh-light);
+        }
+        .btn-morphic-primary:hover { box-shadow: 7px 7px 18px rgba(0, 98, 230, 0.38), -5px -5px 14px var(--sh-light); }
+        .btn-morphic-primary:active { box-shadow: inset 3px 3px 7px rgba(0, 60, 145, 0.45), inset -3px -3px 7px rgba(255,255,255,0.18); }
+
+        .btn-morphic-success { color: var(--accent); }
+        .btn-morphic-danger { color: var(--danger); }
+
+        .btn-morphic-sm { padding: 0.5rem 0.9rem; font-size: 0.78rem; border-radius: 10px; }
+        .btn-block { width: 100%; }
+
+        /* ---------- Tables ---------- */
+        .table-responsive {
+            overflow-x: auto;
+            width: 100%;
+            border-radius: var(--radius-lg);
+            background: var(--canvas);
+            box-shadow: var(--press-sm);
+            padding: 0.35rem;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table { width: 100%; border-collapse: separate; border-spacing: 0 2px; text-align: left; min-width: 660px; }
+
+        th {
+            color: var(--text-faint);
+            font-weight: 700;
+            padding: 0.7rem 1rem;
+            text-transform: uppercase;
+            font-size: 0.64rem;
+            letter-spacing: 0.09em;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            background: var(--canvas);
+            z-index: 2;
+        }
+
+        td {
+            padding: 0.8rem 1rem;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            background: var(--card-solid);
+            vertical-align: middle;
+        }
+        td:first-child { border-radius: 12px 0 0 12px; }
+        td:last-child { border-radius: 0 12px 12px 0; }
+        tbody tr { transition: transform .18s ease; }
+        tbody tr:hover td { background: #fff; }
+
+        @media (prefers-color-scheme: dark) {
+            tbody tr:hover td { background: #313742; }
+        }
+
+        .text-mono {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            padding: 0.18rem 0.5rem;
+            border-radius: 7px;
+            background: var(--canvas);
+            box-shadow: var(--press-sm);
+            white-space: nowrap;
+            display: inline-block;
+        }
+
+        /* ---------- KPI ---------- */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(235px, 1fr)); gap: 1.25rem; }
+
+        .kpi-card {
+            background: var(--card);
+            border-radius: var(--radius-xl);
+            padding: 1.5rem;
+            box-shadow: var(--raise);
             display: flex;
             flex-direction: column;
             gap: 0.4rem;
+            position: relative;
         }
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 1.5rem; right: 1.5rem;
+            width: 34px; height: 34px;
+            border-radius: 12px;
+            background: var(--primary-soft);
+        }
+        .kpi-card:nth-child(2)::before { background: var(--accent-soft); }
+        .kpi-card:nth-child(3)::before { background: rgba(123, 97, 255, 0.14); }
 
-        .terminal-line {
-            line-height: 1.5;
-            word-break: break-all;
+        .kpi-title { font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.01em; }
+        .kpi-value {
+            font-size: 2rem; font-weight: 700; letter-spacing: -0.04em;
+            font-variant-numeric: tabular-nums; line-height: 1.15;
         }
+        .kpi-sub { font-size: 0.75rem; color: var(--text-faint); }
 
-        .terminal-time {
-            color: #64748b;
-            margin-right: 0.5rem;
+        /* ---------- Upload ---------- */
+        .upload-dropzone {
+            border-radius: var(--radius-lg);
+            background: var(--canvas);
+            box-shadow: var(--press-sm);
+            padding: 1.9rem 1.25rem;
+            text-align: center;
+            cursor: pointer;
+            transition: box-shadow .25s ease;
+            margin-bottom: 1.1rem;
         }
-        .terminal-tag-in {
-            color: var(--accent);
-            font-weight: bold;
+        .upload-dropzone:hover { box-shadow: var(--press-sm), 0 0 0 2.5px var(--primary-soft); }
+        .upload-dropzone svg {
+            width: 2.6rem; height: 2.6rem;
+            color: var(--primary);
+            margin-bottom: 0.7rem;
+            transition: transform .25s ease;
         }
-        .terminal-tag-out {
-            color: var(--danger);
-            font-weight: bold;
-        }
-        .terminal-tag-sys {
-            color: #a855f7;
-            font-weight: bold;
-        }
+        .upload-dropzone:hover svg { transform: translateY(-3px); }
 
-        .quick-presets {
-            display: flex;
-            gap: 0.65rem;
-            margin-bottom: 1.25rem;
-            flex-wrap: wrap;
-        }
+        .upload-title { font-size: 0.92rem; font-weight: 600; margin-bottom: 0.2rem; }
+        .upload-sub { font-size: 0.78rem; color: var(--text-faint); }
 
-        /* Status Badge for Table list */
-        .status-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            padding: 0.2rem 0.5rem;
-            border-radius: 9999px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            text-transform: uppercase;
+        .hint-row {
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 0.75rem; flex-wrap: wrap;
+            font-size: 0.76rem; color: var(--text-secondary);
         }
-        .status-pill-success {
-            background: rgba(52, 199, 89, 0.15);
-            color: var(--accent);
-            border: 1px solid rgba(52, 199, 89, 0.25);
-        }
-        .status-pill-failed {
-            background: rgba(255, 59, 48, 0.15);
-            color: var(--danger);
-            border: 1px solid rgba(255, 59, 48, 0.25);
-        }
+        .hint-row b { font-family: var(--font-mono); font-weight: 500; color: var(--primary); }
 
-        /* Toast Alert Container */
-        .toast-container {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
+        /* ---------- Simulator layout ---------- */
+        .simulator-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 336px;
+            gap: 1.5rem;
+            align-items: start;
+        }
+        .simulator-controls { display: flex; flex-direction: column; gap: 1.5rem; min-width: 0; }
+        .quick-presets { display: flex; gap: 0.55rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+
+        /* ---------- Device (signature) ---------- */
+        .soundbox-wrapper { display: flex; flex-direction: column; position: sticky; top: 0.5rem; }
+        .device-panel { display: flex; flex-direction: column; align-items: center; gap: 1.2rem; }
+
+        .soundbox-case {
+            width: 226px;
+            max-width: 100%;
+            aspect-ratio: 226 / 360;
+            background: linear-gradient(160deg, #fbfcfe 0%, #e4e9f1 100%);
+            border-radius: 30px;
+            box-shadow:
+                9px 9px 22px var(--sh-dark),
+                -8px -8px 20px var(--sh-light),
+                inset 0 1px 1px rgba(255,255,255,0.9);
+            position: relative;
+            padding: 1.1rem;
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
-            z-index: 1000;
-        }
-
-        .toast {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border-glass);
-            padding: 1rem 1.5rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-            display: flex;
             align-items: center;
-            gap: 0.75rem;
-            color: white;
-            font-size: 0.88rem;
-            min-width: 320px;
-            transform: translateY(100px);
+            justify-content: space-between;
+            transition: transform .4s cubic-bezier(.16,1,.3,1), box-shadow .4s ease;
+        }
+
+        .soundbox-led {
+            width: 8px; height: 8px; border-radius: 50%;
+            background-color: #c3ccda;
+            position: absolute; top: 0.95rem; right: 1.3rem;
+            transition: background .25s ease, box-shadow .25s ease;
+        }
+        .soundbox-led.active { background-color: var(--accent); box-shadow: 0 0 8px var(--accent); }
+        .soundbox-led.receiving { background-color: var(--primary); box-shadow: 0 0 12px var(--primary); animation: blink .55s infinite; }
+        @keyframes blink { 0%,100% { opacity: .4; } 50% { opacity: 1; } }
+
+        .soundbox-logo {
+            font-size: 0.6rem; font-weight: 700;
+            color: var(--text-faint);
+            letter-spacing: 0.2em; text-transform: uppercase;
+        }
+
+        .soundbox-screen {
+            width: 100%;
+            background: linear-gradient(170deg, #1b2029 0%, #0d1118 100%);
+            border-radius: 13px;
+            padding: 0.7rem 0.8rem;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.7);
+            display: flex; flex-direction: column; gap: 0.3rem;
+            overflow: hidden; position: relative;
+        }
+        .screen-line-1 {
+            font-weight: 700; color: #56e39a; letter-spacing: 0.06em;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .screen-line-2 {
+            font-size: 1.15rem; font-weight: 700; text-align: right;
+            color: #6ff0ae; font-variant-numeric: tabular-nums;
+            text-shadow: 0 0 10px rgba(111, 240, 174, 0.45);
+        }
+
+        .soundbox-grill {
+            width: 100%; flex: 1; min-height: 54px;
+            background-image: radial-gradient(circle, rgba(163,177,198,0.55) 32%, transparent 34%);
+            background-size: 7px 7px;
+            border-radius: 13px;
+            margin: 0.6rem 0;
+            box-shadow: var(--press-sm);
+        }
+
+        .soundbox-qr-sticker {
+            width: 88px; height: 88px;
+            background: #fff;
+            border-radius: 12px;
+            padding: 6px;
+            display: grid; place-items: center;
+            box-shadow: 4px 4px 10px var(--sh-dark-soft), -3px -3px 8px var(--sh-light);
+            margin-bottom: 0.55rem;
+            position: relative; flex-shrink: 0;
+        }
+        .soundbox-qr-img {
+            width: 100%; height: 100%;
+            background:
+                repeating-linear-gradient(45deg, #10151d 0 2px, transparent 2px 10px),
+                repeating-linear-gradient(-45deg, #10151d 0 2px, #fff 2px 10px);
+            opacity: 0.9;
+        }
+        .soundbox-qr-sticker::after {
+            content: 'SCAN TO PAY';
+            position: absolute; bottom: -8px;
+            background: linear-gradient(160deg, #0a8bff, #0062e6);
+            color: #fff; font-size: 0.5rem; font-weight: 700;
+            letter-spacing: 0.08em; padding: 0.18rem 0.5rem;
+            border-radius: 999px; white-space: nowrap;
+            box-shadow: 0 3px 8px rgba(0, 98, 230, 0.35);
+        }
+
+        .device-info-badge {
+            background: var(--canvas);
+            box-shadow: var(--press-sm);
+            padding: 0.85rem 0.95rem;
+            border-radius: var(--radius-md);
+            width: 100%;
+            font-size: 0.76rem;
+            display: flex; flex-direction: column; gap: 0.55rem;
+        }
+        .device-info-row { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; }
+        .device-info-label { color: var(--text-faint); }
+        .device-info-val { font-weight: 600; }
+
+        .device-note { color: var(--text-faint); font-size: 0.73rem; text-align: center; line-height: 1.55; }
+        .device-note b { color: var(--text-secondary); font-family: var(--font-mono); font-weight: 500; }
+
+        /* ---------- Activity log ---------- */
+        .terminal {
+            background: var(--canvas);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--press-sm);
+            padding: 1rem 1.1rem;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            height: 205px;
+            overflow-y: auto;
+            display: flex; flex-direction: column; gap: 0.35rem;
+            -webkit-overflow-scrolling: touch;
+        }
+        .terminal-line { line-height: 1.6; word-break: break-word; }
+        .terminal-time { color: var(--text-faint); margin-right: 0.4rem; }
+        .terminal-tag-in { color: var(--accent); font-weight: 700; }
+        .terminal-tag-out { color: var(--warning); font-weight: 700; }
+        .terminal-tag-sys { color: var(--purple); font-weight: 700; }
+
+        /* ---------- Pills ---------- */
+        .status-pill {
+            display: inline-flex; align-items: center; gap: 0.3rem;
+            padding: 0.25rem 0.65rem;
+            border-radius: 999px;
+            font-size: 0.7rem; font-weight: 600;
+            letter-spacing: -0.005em;
+        }
+        .status-pill-success { background: var(--accent-soft); color: #1f9c52; }
+        .status-pill-failed { background: var(--danger-soft); color: var(--danger); }
+        @media (prefers-color-scheme: dark) { .status-pill-success { color: var(--accent); } }
+
+        /* ---------- Toasts ---------- */
+        .toast-container {
+            position: fixed;
+            bottom: calc(1.5rem + env(safe-area-inset-bottom));
+            right: 1.5rem;
+            display: flex; flex-direction: column; gap: 0.7rem;
+            z-index: 1000; pointer-events: none;
+        }
+        .toast {
+            background: var(--card-solid);
+            border-radius: var(--radius-md);
+            box-shadow: var(--raise);
+            padding: 0.9rem 1.2rem;
+            display: flex; align-items: center; gap: 0.7rem;
+            color: var(--text-primary);
+            font-size: 0.85rem; font-weight: 500;
+            min-width: 290px;
+            max-width: min(390px, calc(100vw - 3rem));
+            transform: translateY(16px) scale(0.98);
             opacity: 0;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform .4s cubic-bezier(.16,1,.3,1), opacity .3s ease;
+            pointer-events: auto;
         }
-
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        .toast-success { border-left: 4px solid var(--accent); }
-        .toast-error { border-left: 4px solid var(--danger); }
-        .toast-icon { width: 1.25rem; height: 1.25rem; flex-shrink: 0; }
+        .toast.show { transform: none; opacity: 1; }
+        .toast-icon { width: 1.3rem; height: 1.3rem; flex-shrink: 0; }
         .toast-success .toast-icon { color: var(--accent); }
         .toast-error .toast-icon { color: var(--danger); }
 
-        /* API docs styling */
-        .doc-section {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
+        /* ---------- Docs ---------- */
+        .doc-section { display: flex; flex-direction: column; gap: 1.2rem; }
+        .doc-section h3 { font-size: 1rem; font-weight: 700; letter-spacing: -0.02em; }
+        .doc-section h4 { font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.07em; }
+        .doc-copy { color: var(--text-secondary); font-size: 0.9rem; line-height: 1.7; }
 
-        .doc-section h3 {
-            font-size: 1rem;
-            font-weight: 700;
-            color: white;
-            border-left: 3px solid var(--primary);
-            padding-left: 0.5rem;
+        .endpoint-line {
+            display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap;
+            background: var(--canvas);
+            box-shadow: var(--press-sm);
+            border-radius: var(--radius-md);
+            padding: 0.8rem 0.95rem;
         }
+        #endpoint-url { word-break: break-all; white-space: normal; }
 
         .doc-method {
             display: inline-block;
-            font-weight: 800;
-            font-size: 0.72rem;
-            padding: 0.25rem 0.5rem;
-            border-radius: 6px;
-            text-transform: uppercase;
-            margin-right: 0.75rem;
+            font-family: var(--font-mono);
+            font-weight: 700; font-size: 0.68rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 999px;
+            letter-spacing: 0.04em;
         }
-        .method-post {
-            background: rgba(52, 199, 89, 0.2);
-            color: var(--accent);
-            border: 1px solid rgba(52, 199, 89, 0.3);
-        }
-        .method-get {
-            background: rgba(0, 113, 227, 0.2);
-            color: #3b82f6;
-            border: 1px solid rgba(0, 113, 227, 0.3);
-        }
+        .method-post { background: var(--accent-soft); color: #1f9c52; }
+        .method-get { background: var(--primary-soft); color: var(--primary); }
 
         .code-block-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #0f172a;
-            border: 1px solid var(--border-glass);
-            border-bottom: none;
-            border-top-left-radius: 0.75rem;
-            border-top-right-radius: 0.75rem;
-            padding: 0.5rem 1rem;
-            font-size: 0.72rem;
-            font-weight: bold;
-            color: var(--text-secondary);
+            display: flex; justify-content: space-between; align-items: center; gap: 0.75rem;
+            padding: 0.55rem 1.1rem 0.15rem;
+            font-size: 0.7rem; font-weight: 600;
+            color: var(--text-faint);
+            text-transform: uppercase; letter-spacing: 0.08em;
         }
-
         .code-block {
-            background: #090d16;
-            border: 1px solid var(--border-glass);
-            border-bottom-left-radius: 0.75rem;
-            border-bottom-right-radius: 0.75rem;
-            padding: 1.25rem;
+            background: var(--canvas);
+            box-shadow: var(--press-sm);
+            border-radius: var(--radius-lg);
+            padding: 1.1rem 1.2rem;
             font-family: var(--font-mono);
-            font-size: 0.8rem;
-            color: #cbd5e1;
+            font-size: 0.76rem;
+            color: var(--text-primary);
             overflow-x: auto;
-            line-height: 1.5;
-            margin-bottom: 1.5rem;
+            line-height: 1.7;
+            margin-bottom: 1.3rem;
+            -webkit-overflow-scrolling: touch;
+        }
+        .copy-btn {
+            background: transparent; border: none;
+            color: var(--primary); cursor: pointer;
+            font-family: inherit; font-size: inherit;
+            font-weight: 700; letter-spacing: inherit; text-transform: inherit;
+            padding: 0.15rem 0.25rem;
+        }
+        .copy-btn:hover { opacity: 0.7; }
+
+        /* ---------- Search ---------- */
+        .search-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.15rem; gap: 1rem; }
+        .search-box { position: relative; flex: 1; max-width: 430px; }
+        .search-box input { padding-left: 2.5rem; font-family: var(--font-body); }
+        .search-icon {
+            position: absolute; left: 0.85rem; top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-faint);
+            width: 1.05rem; height: 1.05rem;
+            pointer-events: none;
         }
 
-        .copy-btn {
-            background: transparent;
-            border: none;
+        /* ---------- Empty state ---------- */
+        .empty-state { text-align: center; padding: 2.6rem 1.25rem; color: var(--text-secondary); }
+        .empty-state svg {
+            width: 3rem; height: 3rem; stroke-width: 1.2;
+            margin-bottom: 0.9rem; color: var(--text-faint); opacity: 0.5;
+        }
+
+        .chart-shell { height: 250px; width: 100%; position: relative; }
+
+        /* ---------- Login gate ---------- */
+        .login-gate {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: var(--canvas);
+            display: grid;
+            place-items: center;
+            padding: 1.5rem;
+            padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+            overflow-y: auto;
+        }
+        body.authed .login-gate { display: none; }
+        body:not(.authed) .content-area,
+        body:not(.authed) .sidebar { visibility: hidden; }
+
+        .login-card {
+            width: 100%;
+            max-width: 380px;
+            background: var(--card);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--raise);
+            padding: 2.25rem 1.9rem;
+            animation: rise .45s cubic-bezier(.16,1,.3,1);
+        }
+
+        .login-brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.85rem;
+            margin-bottom: 1.75rem;
+            text-align: center;
+        }
+        .login-brand .brand-logo { width: 3.4rem; height: 3.4rem; font-size: 1.5rem; border-radius: 18px; }
+        .login-brand h2 { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.035em; }
+        .login-brand p { font-size: 0.82rem; color: var(--text-faint); margin-top: 2px; }
+
+        .password-wrap { position: relative; }
+        .password-wrap .form-control { padding-right: 3rem; }
+        .password-toggle {
+            position: absolute;
+            right: 0.4rem; top: 50%;
+            transform: translateY(-50%);
+            width: 2.2rem; height: 2.2rem;
+            border: none; background: transparent;
+            color: var(--text-faint);
+            cursor: pointer;
+            display: grid; place-items: center;
+            border-radius: 8px;
+        }
+        .password-toggle:hover { color: var(--primary); }
+        .password-toggle svg { width: 1.1rem; height: 1.1rem; }
+
+        .login-remember {
+            display: flex; align-items: center; gap: 0.55rem;
+            font-size: 0.82rem; color: var(--text-secondary);
+            margin-bottom: 1.35rem; cursor: pointer;
+            user-select: none;
+        }
+        .login-remember input { width: 1rem; height: 1rem; accent-color: var(--primary); cursor: pointer; }
+
+        .login-error {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--danger-soft);
+            color: var(--danger);
+            border-radius: var(--radius-md);
+            padding: 0.7rem 0.9rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-bottom: 1.1rem;
+        }
+        .login-error.show { display: flex; animation: shake .35s ease; }
+        .login-error svg { width: 1.1rem; height: 1.1rem; flex-shrink: 0; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .login-foot {
+            text-align: center;
+            font-size: 0.72rem;
+            color: var(--text-faint);
+            margin-top: 1.35rem;
+            line-height: 1.6;
+        }
+
+        .icon-btn {
+            width: 2.4rem; height: 2.4rem;
+            border: none; border-radius: 50%;
+            background: var(--card);
+            box-shadow: var(--raise-sm);
             color: var(--text-secondary);
             cursor: pointer;
-            font-weight: bold;
+            display: grid; place-items: center;
+            flex-shrink: 0;
+            transition: box-shadow .2s ease, color .2s ease;
         }
-        .copy-btn:hover {
-            color: white;
+        .icon-btn:hover { color: var(--danger); }
+        .icon-btn:active { box-shadow: var(--press-sm); }
+        .icon-btn svg { width: 1.1rem; height: 1.1rem; }
+
+        .nav-scrim {
+            position: fixed; inset: 0;
+            background: rgba(30, 38, 52, 0.35);
+            backdrop-filter: blur(4px);
+            opacity: 0; visibility: hidden;
+            transition: opacity .3s ease, visibility .3s ease;
+            z-index: 150;
         }
 
-        @keyframes pulse {
-            0% { opacity: 0.5; }
-            50% { opacity: 1; }
-            100% { opacity: 0.5; }
+        /* ---------- Responsive ---------- */
+        @media (max-width: 1180px) {
+            .simulator-layout { grid-template-columns: minmax(0, 1fr) 296px; }
+            .soundbox-case { width: 206px; }
         }
 
-        /* Search input design */
-        .search-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            gap: 1.5rem;
-        }
-        .search-box {
-            position: relative;
-            flex: 1;
-            max-width: 400px;
-        }
-        .search-box input {
-            padding-left: 2.5rem;
-        }
-        .search-icon {
-            position: absolute;
-            left: 0.85rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
-            width: 1.1rem;
-            height: 1.1rem;
+        @media (max-width: 1024px) {
+            :root { --shell-pad: 1.35rem; }
+            .sidebar {
+                position: fixed; top: 0; bottom: 0; left: 0;
+                width: 268px; max-width: 84vw;
+                transform: translateX(-102%);
+                transition: transform .35s cubic-bezier(.16,1,.3,1);
+                box-shadow: 18px 0 40px rgba(120, 135, 160, 0.28);
+                padding-top: calc(1.5rem + env(safe-area-inset-top));
+            }
+            body.nav-open .sidebar { transform: none; }
+            body.nav-open .nav-scrim { opacity: 1; visibility: visible; }
+            .nav-toggle { display: grid; }
+
+            .simulator-layout { grid-template-columns: minmax(0, 1fr); }
+            .soundbox-wrapper { position: static; order: -1; }
+            .device-panel { flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: flex-start; gap: 1.6rem; }
+            .device-side { flex: 1; min-width: 240px; display: flex; flex-direction: column; gap: 0.9rem; }
+            .device-note { text-align: left; }
         }
 
-        /* Empty state styling */
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1.5rem;
-            color: var(--text-secondary);
+        @media (max-width: 720px) {
+            :root { --shell-pad: 1rem; }
+            body { font-size: 14.5px; }
+
+            .navbar { height: 66px; padding: 0 1rem; padding-top: env(safe-area-inset-top); }
+            .navbar-title { font-size: 1rem; }
+            .user-meta { display: none; }
+            .user-profile { padding: 0.3rem; }
+
+            .glass-panel { padding: 1.15rem; border-radius: 20px; }
+            .panel-title { font-size: 0.94rem; margin-bottom: 1.1rem; }
+            .panel-title svg { width: 1.8rem; height: 1.8rem; padding: 0.4rem; }
+
+            .kpi-grid { grid-template-columns: 1fr; gap: 0.9rem; }
+            .kpi-card { padding: 1.2rem; border-radius: 20px; }
+            .kpi-value { font-size: 1.75rem; }
+
+            .form-row { grid-template-columns: 1fr; gap: 0; }
+            .page-view.active { gap: 1.1rem; }
+
+            .panel-header > div { display: flex; gap: 0.6rem; }
+            .panel-header > div .btn-morphic { flex: 1; }
+
+            .search-box { max-width: none; }
+            .quick-presets { display: grid; grid-template-columns: 1fr 1fr; }
+            .quick-presets .btn-morphic { width: 100%; }
+
+            .device-panel { flex-direction: column; gap: 1.1rem; }
+            .device-side { min-width: 0; width: 100%; }
+            .device-note { text-align: center; }
+            .soundbox-case { width: 100%; max-width: 224px; }
+
+            .terminal { height: 175px; font-size: 0.72rem; }
+            .toast-container { left: 1rem; right: 1rem; bottom: calc(1rem + env(safe-area-inset-bottom)); }
+            .toast { min-width: 0; max-width: none; width: 100%; }
+            .chart-shell { height: 210px; }
+            td, th { padding: 0.7rem 0.85rem; }
         }
-        .empty-state svg {
-            width: 3.5rem;
-            height: 3.5rem;
-            stroke-width: 1;
-            margin-bottom: 1rem;
-            color: rgba(255,255,255,0.1);
+
+        @media (max-width: 420px) {
+            .quick-presets { grid-template-columns: 1fr; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .001ms !important;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- Tabbed Navigation Sidebar -->
-    <div class="sidebar">
-        <div>
-            <a class="sidebar-brand">
-                <div class="brand-logo">M</div>
-                <div class="brand-text">
-                    <h1>Soundbox</h1>
-                    <p>API & Admin Panel</p>
+    <!-- Login gate -->
+    <div class="login-gate" id="login-gate">
+        <div class="login-card">
+            <div class="login-brand">
+                <div class="brand-logo">Q</div>
+                <div>
+                    <h2>QRNet Pay</h2>
+                    <p>Sign in to the soundbox console</p>
                 </div>
-            </a>
-            
-            <nav class="sidebar-menu">
-                <div class="menu-item active" onclick="switchPage('simulator-page')">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
-                    </svg>
-                    <span>Console & Mock</span>
+            </div>
+
+            <div class="login-error" id="login-error">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+                <span id="login-error-text">That username and password don't match.</span>
+            </div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="login-user">Username</label>
+                    <input type="text" id="login-user" class="form-control" autocomplete="username" required placeholder="admin">
                 </div>
-                <div class="menu-item" onclick="switchPage('inventory-page')">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75zm.375 0a.375 0 11-.75 0 .375 0 01.75 0zM3.75 12h.007v.008H3.75V12zm.375 0a.375 0 11-.75 0 .375 0 01.75 0zm-.375 5.25h.007v.008H3.75v-.008zm.375 0a.375 0 11-.75 0 .375 0 01.75 0z" />
-                    </svg>
-                    <span>Device Inventory</span>
+                <div class="form-group">
+                    <label for="login-pass">Password</label>
+                    <div class="password-wrap">
+                        <input type="password" id="login-pass" class="form-control" autocomplete="current-password" required placeholder="••••••••">
+                        <button type="button" class="password-toggle" id="password-toggle" onclick="togglePassword()" aria-label="Show password">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-                <div class="menu-item" onclick="switchPage('analytics-page')">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
-                    </svg>
-                    <span>Reports & Analytics</span>
-                </div>
-                <div class="menu-item" onclick="switchPage('docs-page')">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
-                    </svg>
-                    <span>API Documentation</span>
-                </div>
-            </nav>
+
+                <label class="login-remember" for="login-remember">
+                    <input type="checkbox" id="login-remember">
+                    Keep me signed in on this device
+                </label>
+
+                <button type="submit" class="btn-morphic btn-morphic-primary btn-block" id="login-submit">
+                    Sign in
+                </button>
+            </form>
+
+            <p class="login-foot">QRNet Pay by NetWorld · Soundbox gateway console</p>
         </div>
+    </div>
+
+    <div class="nav-scrim" id="nav-scrim" onclick="closeNav()"></div>
+
+    <!-- Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <a class="sidebar-brand">
+            <div class="brand-logo">Q</div>
+            <div class="brand-text">
+                <h1>QRNet Pay</h1>
+                <p>by NetWorld</p>
+            </div>
+        </a>
+
+        <div class="nav-label">Workspace</div>
+        <nav class="sidebar-menu">
+            <div class="menu-item active" onclick="switchPage('simulator-page')">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                </svg>
+                <span>Console &amp; Mock</span>
+            </div>
+            <div class="menu-item" onclick="switchPage('inventory-page')">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.008v.008H3.75V6.75zm0 5.25h.008v.008H3.75V12zm0 5.25h.008v.008H3.75v-.008z" />
+                </svg>
+                <span>Device Inventory</span>
+            </div>
+            <div class="menu-item" onclick="switchPage('analytics-page')">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
+                </svg>
+                <span>Reports &amp; Analytics</span>
+            </div>
+            <div class="menu-item" onclick="switchPage('docs-page')">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
+                </svg>
+                <span>API Documentation</span>
+            </div>
+        </nav>
 
         <div class="sidebar-footer">
             <div class="connection-card">
                 <div class="connection-status">
-                    <span>Database:</span>
-                    <span id="db-type-label" class="badge-type badge-local">Checking...</span>
+                    <span>Database</span>
+                    <span id="db-type-label" class="badge-type badge-local">Checking…</span>
                 </div>
                 <div class="connection-status">
-                    <span>MQTT Broker:</span>
+                    <span>MQTT broker</span>
                     <span id="broker-status-dot" class="status-dot"></span>
                 </div>
                 <div class="connection-status">
-                    <span>API Gateway:</span>
+                    <span>API gateway</span>
                     <span id="server-status-dot" class="status-dot"></span>
                 </div>
             </div>
         </div>
-    </div>
+    </aside>
 
     <!-- Main Workspace -->
     <div class="content-area">
-        
+
         <header class="navbar">
-            <div class="navbar-title" id="navbar-view-title">Console & Virtual Device</div>
+            <div class="navbar-left">
+                <button class="nav-toggle" id="nav-toggle" onclick="toggleNav()" aria-label="Open menu">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                    </svg>
+                </button>
+                <div class="navbar-title" id="navbar-view-title">Console &amp; virtual device</div>
+            </div>
             <div class="navbar-actions">
                 <div class="user-profile">
-                    <div class="user-avatar">AD</div>
-                    <div style="font-size: 0.8rem; font-weight: 600;">
-                        <div>Console Admin</div>
-                        <div style="color: var(--text-secondary); font-size: 0.7rem;"></div>
+                    <div class="user-avatar" id="user-avatar">AD</div>
+                    <div class="user-meta">
+                        <span style="display:block; color:var(--text-primary); font-size:0.8rem; font-weight:600;" id="user-name">Console admin</span>
+                        <span>QRNet operations</span>
                     </div>
                 </div>
+                <button class="icon-btn" onclick="signOut()" aria-label="Sign out" title="Sign out">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.9" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                    </svg>
+                </button>
             </div>
         </header>
 
-        <!-- PAGE 1: SIMULATOR PAGE (ACTIVE) -->
+        <!-- PAGE 1: SIMULATOR -->
         <div id="simulator-page" class="page-view active">
             <div class="simulator-layout">
-                
+
                 <div class="simulator-controls">
-                    <!-- Webhook Simulator Panel -->
                     <div class="glass-panel">
                         <h2 class="panel-title">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.25 9.75L16.5 12l-2.25 2.25m-4.5 0L7.5 12l2.25-2.25M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.9" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
                             </svg>
-                            Payment Callback Webhook Simulator
+                            Send a test payment
                         </h2>
-                        
+
                         <div class="quick-presets">
-                            <button class="btn-morphic btn-morphic-sm" onclick="applyPreset(10, '20501603')">৳10 Auto Preset</button>
-                            <button class="btn-morphic btn-morphic-sm" onclick="applyPreset(500, '20501603')">৳500 Auto Preset</button>
-                            <button class="btn-morphic btn-morphic-sm" onclick="applyPreset(2450.75, '20501603')">৳2,450.75 Auto Preset</button>
+                            <button class="btn-morphic btn-morphic-sm" onclick="applyPreset(10, '20501603')">৳10 preset</button>
+                            <button class="btn-morphic btn-morphic-sm" onclick="applyPreset(500, '20501603')">৳500 preset</button>
+                            <button class="btn-morphic btn-morphic-sm" onclick="applyPreset(2450.75, '20501603')">৳2,450.75 preset</button>
                         </div>
 
                         <form id="webhook-form">
                             <div class="form-group">
-                                <label for="sim-tid">Target Terminal ID (TID)</label>
+                                <label for="sim-tid">Target terminal ID (TID)</label>
                                 <input type="text" id="sim-tid" class="form-control" required placeholder="e.g. 20501603">
                             </div>
                             <div class="form-row">
@@ -1088,94 +1129,100 @@
                                     <input type="number" id="sim-amount" step="0.01" class="form-control" required placeholder="0.00">
                                 </div>
                                 <div class="form-group">
-                                    <label for="sim-invoice">Invoice / Bill Ref</label>
+                                    <label for="sim-invoice">Invoice / bill ref</label>
                                     <input type="text" id="sim-invoice" class="form-control" placeholder="123456">
                                 </div>
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="sim-rrn">RRN (Retrieval Ref Num)</label>
+                                    <label for="sim-rrn">RRN (retrieval ref no.)</label>
                                     <input type="text" id="sim-rrn" class="form-control" placeholder="000123456789">
                                 </div>
                                 <div class="form-group">
-                                    <label for="sim-card">Card / Account No.</label>
+                                    <label for="sim-card">Card / account no.</label>
                                     <input type="text" id="sim-card" class="form-control" placeholder="4321-xxxx-xxxx-5678">
                                 </div>
                             </div>
-                            <button type="submit" class="btn-morphic btn-morphic-primary" style="width: 100%; margin-top: 0.5rem;">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1.25rem;height:1.25rem;">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.59 14.37a6 6 0 01-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 006.16-12.12A14.98 14.98 0 009.631 8.41m5.96 5.96a14.926 14.926 0 01-5.841 2.58m-.019-12.12a14.98 14.98 0 00-6.16 12.12A14.98 14.98 0 009.63 15.41M9.63 15.41a14.914 14.914 0 015.84-2.58m-5.84 2.58H4.81" />
+                            <button type="submit" class="btn-morphic btn-morphic-primary btn-block" style="margin-top: 0.35rem;">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
                                 </svg>
-                                Trigger Webhook Web Message
+                                Send payment to device
                             </button>
                         </form>
                     </div>
 
-                    <!-- Live logs console -->
                     <div class="glass-panel">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
-                            <h2 class="panel-title" style="margin-bottom:0; border:none; padding:0;">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <div class="panel-header">
+                            <h2 class="panel-title">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.9" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 7.5l3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0021 18V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v12a2.25 2.25 0 002.25 2.25z" />
                                 </svg>
-                                Transaction Console Logs
+                                Live activity
                             </h2>
-                            <button class="btn-morphic btn-morphic-sm" onclick="clearConsole()">Clear Logs</button>
+                            <button class="btn-morphic btn-morphic-sm" onclick="clearConsole()">Clear log</button>
                         </div>
                         <div class="terminal" id="terminal-body">
-                            <div class="terminal-line"><span class="terminal-time">[10:00:00]</span><span class="terminal-tag-sys">[SYS]</span> Soundbox Gateway Console Ready. Listening...</div>
+                            <div class="terminal-line"><span class="terminal-time">[10:00:00]</span><span class="terminal-tag-sys">[SYS]</span> QRNet gateway console ready. Listening…</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Right Column: Visual Device mockup -->
                 <div class="soundbox-wrapper">
-                    <div class="glass-panel" style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 1.5rem;">
-                        <h3 style="font-size:1rem; font-weight:700; color:white; align-self:flex-start; margin-bottom:-0.5rem;">Mock Soundbox</h3>
-                        
-                        <div class="soundbox-case" id="soundbox-case">
-                            <div class="soundbox-led active" id="device-led"></div>
-                            <div class="soundbox-logo">AISINO Q161PRO</div>
-                            <div class="soundbox-screen">
-                                <div class="screen-line-1" id="scr-line1">MUTUAL TRUST BANK</div>
-                                <div class="screen-line-2" id="scr-line2">Ready...</div>
-                            </div>
-                            <div class="soundbox-grill"></div>
-                            <div class="soundbox-qr-sticker">
-                                <div class="soundbox-qr-img"></div>
-                            </div>
-                        </div>
+                    <div class="glass-panel">
+                        <h2 class="panel-title">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.9" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+                            </svg>
+                            Virtual soundbox
+                        </h2>
 
-                        <div class="device-info-badge">
-                            <div class="device-info-row">
-                                <span class="device-info-label">Active Serial SN:</span>
-                                <span class="device-info-val text-mono" id="simulated-sn">00078000573</span>
+                        <div class="device-panel">
+                            <div class="soundbox-case" id="soundbox-case">
+                                <div class="soundbox-led active" id="device-led"></div>
+                                <div class="soundbox-logo">QRNet SB-1</div>
+                                <div class="soundbox-screen">
+                                    <div class="screen-line-1" id="scr-line1">QRNET PAY</div>
+                                    <div class="screen-line-2" id="scr-line2">Ready...</div>
+                                </div>
+                                <div class="soundbox-grill"></div>
+                                <div class="soundbox-qr-sticker">
+                                    <div class="soundbox-qr-img"></div>
+                                </div>
                             </div>
-                            <div class="device-info-row">
-                                <span class="device-info-label">MQTT Connection:</span>
-                                <span class="device-info-val" style="color: var(--accent);" id="simulated-state">Active / Idle</span>
+
+                            <div class="device-side">
+                                <div class="device-info-badge">
+                                    <div class="device-info-row">
+                                        <span class="device-info-label">Active serial (SN)</span>
+                                        <span class="device-info-val text-mono" id="simulated-sn">00078000573</span>
+                                    </div>
+                                    <div class="device-info-row">
+                                        <span class="device-info-label">MQTT connection</span>
+                                        <span class="device-info-val" style="color: var(--accent);" id="simulated-state">Active / Idle</span>
+                                    </div>
+                                </div>
+                                <p class="device-note">
+                                    Send a payment to a terminal mapped to serial <b>00078000573</b> and this device speaks the amount aloud and shows it on screen.
+                                </p>
                             </div>
                         </div>
-                        <p style="color: var(--text-secondary); font-size: 0.65rem; text-align: center; line-height: 1.4;">
-                            Targeting Serial <b style="color:white;">00078000573</b> in the webhook mappings will cause this virtual mockup to display the amount and play Bengali/English speech synthesized audio.
-                        </p>
                     </div>
                 </div>
 
             </div>
         </div>
 
-        <!-- PAGE 2: DEVICE INVENTORY PAGE -->
+        <!-- PAGE 2: INVENTORY -->
         <div id="inventory-page" class="page-view">
-            <!-- Register Single Device & Bulk Import Forms -->
             <div class="form-row">
-                
+
                 <div class="glass-panel">
                     <h2 class="panel-title">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.9" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
                         </svg>
-                        Register Single Device
+                        Add a device
                     </h2>
                     <form id="mapping-form">
                         <div class="form-group">
@@ -1183,56 +1230,53 @@
                             <input type="text" id="tid-input" class="form-control" required placeholder="e.g. 20501603">
                         </div>
                         <div class="form-group">
-                            <label for="sn-input">Soundbox Serial (SN)</label>
+                            <label for="sn-input">Soundbox serial (SN)</label>
                             <input type="text" id="sn-input" class="form-control" required placeholder="e.g. 00078000573">
                         </div>
                         <div class="form-group">
-                            <label for="merchant-name-input">Merchant Name / Store Title</label>
+                            <label for="merchant-name-input">Merchant / store name</label>
                             <input type="text" id="merchant-name-input" class="form-control" placeholder="e.g. Retail Shop">
                         </div>
-                        <button type="submit" class="btn-morphic btn-morphic-primary" style="width: 100%;">
-                            Register & Synchronize Mapping
-                        </button>
+                        <button type="submit" class="btn-morphic btn-morphic-primary btn-block">Save device</button>
                     </form>
                 </div>
 
                 <div class="glass-panel">
                     <h2 class="panel-title">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.9" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
                         </svg>
-                        Bulk Excel/CSV Import
+                        Import from a spreadsheet
                     </h2>
-                    
+
                     <div class="upload-dropzone" onclick="document.getElementById('excel-file-input').click()">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.4" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
                         </svg>
-                        <div class="upload-title">Drop your Excel/CSV here or Click to Browse</div>
-                        <div class="upload-sub">Supports .xlsx, .xls, and .csv files</div>
+                        <div class="upload-title">Drop a file here, or tap to browse</div>
+                        <div class="upload-sub">Accepts .xlsx, .xls and .csv</div>
                         <input type="file" id="excel-file-input" style="display:none;" accept=".xlsx,.xls,.csv" onchange="handleExcelUpload(event)">
                     </div>
 
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-size:0.75rem; color:var(--text-secondary);">Template Columns: <b>tid, sn, merchant_name</b></span>
-                        <button class="btn-morphic btn-morphic-sm" onclick="downloadTemplate()">Get Template</button>
+                    <div class="hint-row">
+                        <span>Columns needed: <b>tid, sn, merchant_name</b></span>
+                        <button class="btn-morphic btn-morphic-sm" onclick="downloadTemplate()">Download template</button>
                     </div>
                 </div>
 
             </div>
 
-            <!-- Mapping Data Table -->
             <div class="glass-panel">
-                <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-                    <h2 class="panel-title" style="margin-bottom:0; border:none; padding:0;">Device Database</h2>
-                    <div style="display:flex; gap:1rem;">
+                <div class="panel-header">
+                    <h2 class="panel-title">Registered devices</h2>
+                    <div style="display:flex; gap:0.6rem;">
                         <button class="btn-morphic btn-morphic-success btn-morphic-sm" onclick="exportMappingsExcel()">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:0.875rem;height:0.875rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                             </svg>
-                            Export Excel
+                            Export
                         </button>
-                        <button class="btn-morphic btn-morphic-sm" onclick="fetchMappings()">Refresh DB</button>
+                        <button class="btn-morphic btn-morphic-sm" onclick="fetchMappings()">Refresh</button>
                     </div>
                 </div>
 
@@ -1241,7 +1285,7 @@
                         <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        <input type="text" id="mapping-search" class="form-control" placeholder="Search MIDs, serial numbers, or names..." oninput="filterMappingsTable()">
+                        <input type="text" id="mapping-search" class="form-control" placeholder="Search by TID, serial or merchant" oninput="filterMappingsTable()">
                     </div>
                 </div>
 
@@ -1249,16 +1293,16 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Terminal ID (TID)</th>
-                                <th>Device Serial (SN)</th>
-                                <th>Merchant Store Name</th>
-                                <th>MQTT Target Topic</th>
+                                <th>Terminal ID</th>
+                                <th>Serial (SN)</th>
+                                <th>Merchant</th>
+                                <th>MQTT topic</th>
                                 <th style="text-align:right;">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="mappings-table-body">
                             <tr>
-                                <td colspan="5" style="text-align: center; color: var(--text-secondary);">Loading registered devices...</td>
+                                <td colspan="5" style="text-align: center; color: var(--text-secondary);">Loading registered devices…</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1266,52 +1310,49 @@
             </div>
         </div>
 
-        <!-- PAGE 3: REPORTS & ANALYTICS PAGE -->
+        <!-- PAGE 3: ANALYTICS -->
         <div id="analytics-page" class="page-view">
-            <!-- KPI Cards -->
             <div class="kpi-grid">
                 <div class="kpi-card">
-                    <div class="kpi-title">Total Transaction Value</div>
+                    <div class="kpi-title">Total value</div>
                     <div class="kpi-value" id="kpi-total-val">৳0.00</div>
-                    <div class="kpi-sub">Total revenue routed through Soundbox gateway</div>
+                    <div class="kpi-sub">Payments routed through the gateway</div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-title">Successful Payouts</div>
+                    <div class="kpi-title">Delivered</div>
                     <div class="kpi-value" id="kpi-success-count">0</div>
                     <div class="kpi-sub" id="kpi-success-sub">0% success rate</div>
                 </div>
                 <div class="kpi-card">
-                    <div class="kpi-title">Registered Soundboxes</div>
+                    <div class="kpi-title">Registered soundboxes</div>
                     <div class="kpi-value" id="kpi-active-devices">0</div>
-                    <div class="kpi-sub">Active device listener mappings</div>
+                    <div class="kpi-sub">Devices listening for payments</div>
                 </div>
             </div>
 
-            <!-- Chart -->
             <div class="glass-panel">
                 <h2 class="panel-title">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.9" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
                     </svg>
-                    Real-time Transaction Trends
+                    Recent payment volume
                 </h2>
-                <div style="height: 250px; width:100%; position:relative;">
+                <div class="chart-shell">
                     <canvas id="trends-chart"></canvas>
                 </div>
             </div>
 
-            <!-- Transaction Log Table -->
             <div class="glass-panel">
-                <div class="panel-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-                    <h2 class="panel-title" style="margin-bottom:0; border:none; padding:0;">Transaction History Ledger</h2>
-                    <div style="display:flex; gap:1rem;">
+                <div class="panel-header">
+                    <h2 class="panel-title">Payment history</h2>
+                    <div style="display:flex; gap:0.6rem;">
                         <button class="btn-morphic btn-morphic-success btn-morphic-sm" onclick="exportTransactionsExcel()">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:0.875rem;height:0.875rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
                             </svg>
-                            Export Ledger
+                            Export
                         </button>
-                        <button class="btn-morphic btn-morphic-sm" onclick="fetchTransactions()">Refresh Ledger</button>
+                        <button class="btn-morphic btn-morphic-sm" onclick="fetchTransactions()">Refresh</button>
                     </div>
                 </div>
 
@@ -1320,7 +1361,7 @@
                         <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        <input type="text" id="tx-search" class="form-control" placeholder="Search transactions by invoice, RRN, card, or merchant..." oninput="filterTransactionsTable()">
+                        <input type="text" id="tx-search" class="form-control" placeholder="Search by invoice, RRN, card or merchant" oninput="filterTransactionsTable()">
                     </div>
                 </div>
 
@@ -1328,19 +1369,19 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Timestamp</th>
-                                <th>Terminal TID</th>
-                                <th>Target Serial (SN)</th>
+                                <th>Time</th>
+                                <th>Terminal ID</th>
+                                <th>Serial (SN)</th>
                                 <th>Invoice</th>
-                                <th>RRN Reference</th>
-                                <th>Card/Account</th>
+                                <th>RRN</th>
+                                <th>Card / account</th>
                                 <th>Amount</th>
                                 <th style="text-align:right;">Status</th>
                             </tr>
                         </thead>
                         <tbody id="transactions-table-body">
                             <tr>
-                                <td colspan="8" style="text-align: center; color: var(--text-secondary);">No transaction history logs found.</td>
+                                <td colspan="8" style="text-align: center; color: var(--text-secondary);">No payments logged yet.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1348,81 +1389,80 @@
             </div>
         </div>
 
-        <!-- PAGE 4: API DOCUMENTATION PAGE -->
+        <!-- PAGE 4: DOCS -->
         <div id="docs-page" class="page-view">
             <div class="glass-panel">
                 <h2 class="panel-title">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.9" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
                     </svg>
-                    Bank Integration Webhook Documentation
+                    Payment callback integration
                 </h2>
-                
+
                 <div class="doc-section">
-                    <h3>1. Webhook Payment Callback</h3>
-                    <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5;">
-                        To broadcast payments from your bank core network to registered Soundbox devices, compile a REST API webhook payload and execute an HTTP `POST` request to our gateway route. The gateway automatically translates the Terminal ID (TID), resolves the device's unique topic, and publishes the speech payload via MQTT.
+                    <h3>1. Announce a payment on a device</h3>
+                    <p class="doc-copy">
+                        Post a payment to the QRNet gateway and it does the rest: it looks up the terminal ID, finds the soundbox mapped to it, and publishes the announcement over MQTT so the device speaks the amount.
                     </p>
 
-                    <div style="font-size: 0.9rem; line-height: 1.5;">
+                    <div class="endpoint-line">
                         <span class="doc-method method-post">POST</span>
-                        <code class="text-mono" id="endpoint-url">https://your-soundbox-gateway.com/api/payment</code>
+                        <code class="text-mono" id="endpoint-url">https://qrnet-gateway.local/api/payment</code>
                     </div>
 
-                    <h4 style="font-size: 0.85rem; font-weight: 700; color: white;">Payload Parameters (JSON Body)</h4>
+                    <h4>Request body (JSON)</h4>
                     <div class="table-responsive">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Parameter</th>
+                                    <th>Field</th>
                                     <th>Type</th>
-                                    <th>Status</th>
-                                    <th>Description</th>
+                                    <th>Required</th>
+                                    <th>What it does</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td class="text-mono">tid</td>
+                                    <td><span class="text-mono">tid</span></td>
                                     <td>String</td>
-                                    <td style="color:var(--danger); font-weight:bold;">Required</td>
-                                    <td>Terminal ID registered inside the database mapping console.</td>
+                                    <td style="color:var(--danger); font-weight:600;">Yes</td>
+                                    <td>Terminal ID registered under Device Inventory.</td>
                                 </tr>
                                 <tr>
-                                    <td class="text-mono">amount</td>
+                                    <td><span class="text-mono">amount</span></td>
                                     <td>Number / String</td>
-                                    <td style="color:var(--danger); font-weight:bold;">Required</td>
-                                    <td>Payment transaction amount. Read aloud by the device speaker.</td>
+                                    <td style="color:var(--danger); font-weight:600;">Yes</td>
+                                    <td>Payment amount. The device reads this aloud.</td>
                                 </tr>
                                 <tr>
-                                    <td class="text-mono">invoice</td>
+                                    <td><span class="text-mono">invoice</span></td>
                                     <td>String</td>
-                                    <td>Optional</td>
-                                    <td>Transaction invoice index (e.g. "459039"). Displays on device LCD screen.</td>
+                                    <td style="color:var(--text-faint);">No</td>
+                                    <td>Invoice reference, shown on the device screen.</td>
                                 </tr>
                                 <tr>
-                                    <td class="text-mono">rrn</td>
+                                    <td><span class="text-mono">rrn</span></td>
                                     <td>String</td>
-                                    <td>Optional</td>
-                                    <td>Retrieval Reference Number (RRN) for transaction audits. Displays on device screen.</td>
+                                    <td style="color:var(--text-faint);">No</td>
+                                    <td>Retrieval reference number, kept for reconciliation.</td>
                                 </tr>
                                 <tr>
-                                    <td class="text-mono">card_number</td>
+                                    <td><span class="text-mono">card_number</span></td>
                                     <td>String</td>
-                                    <td>Optional</td>
-                                    <td>Masked account or card index triggering payment. Logged inside console metrics.</td>
+                                    <td style="color:var(--text-faint);">No</td>
+                                    <td>Masked card or account number, stored in the payment log.</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <h4 style="font-size: 0.85rem; font-weight: 700; color: white; margin-top: 1rem;">Integration Code Samples</h4>
-                    
-                    <!-- cURL Sample -->
+                    <h4>Code samples</h4>
+
                     <div class="code-block-header">
-                        <span>cURL HTTP REQUEST</span>
-                        <button class="copy-btn" onclick="copyCode('curl-code')">Copy Code</button>
+                        <span>cURL</span>
+                        <button class="copy-btn" onclick="copyCode('curl-code')">Copy</button>
                     </div>
-                    <pre class="code-block" id="curl-code">curl -X POST https://your-soundbox-gateway.com/api/payment \
+                    <pre class="code-block" id="curl-code">curl -X POST https://qrnet-gateway.local/api/payment \
   -H "Content-Type: application/json" \
   -d '{
     "tid": "20501603",
@@ -1432,10 +1472,9 @@
     "card_number": "1234-xxxx-xxxx-9012"
   }'</pre>
 
-                    <!-- JS Sample -->
                     <div class="code-block-header">
-                        <span>JAVASCRIPT (FETCH API)</span>
-                        <button class="copy-btn" onclick="copyCode('js-code')">Copy Code</button>
+                        <span>JavaScript (fetch)</span>
+                        <button class="copy-btn" onclick="copyCode('js-code')">Copy</button>
                     </div>
                     <pre class="code-block" id="js-code">const payload = {
   tid: "20501603",
@@ -1445,23 +1484,22 @@
   card_number: "1234-xxxx-xxxx-9012"
 };
 
-fetch('https://your-soundbox-gateway.com/api/payment', {
+fetch('https://qrnet-gateway.local/api/payment', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify(payload)
 })
 .then(res => res.json())
-.then(data => console.log('Speech triggered successfully:', data))
-.catch(err => console.error('Connection failed:', err));</pre>
+.then(data => console.log('Announcement sent:', data))
+.catch(err => console.error('Request failed:', err));</pre>
 
-                    <!-- Python Sample -->
                     <div class="code-block-header">
-                        <span>PYTHON (REQUESTS)</span>
-                        <button class="copy-btn" onclick="copyCode('python-code')">Copy Code</button>
+                        <span>Python (requests)</span>
+                        <button class="copy-btn" onclick="copyCode('python-code')">Copy</button>
                     </div>
                     <pre class="code-block" id="python-code">import requests
 
-url = "https://your-soundbox-gateway.com/api/payment"
+url = "https://qrnet-gateway.local/api/payment"
 payload = {
     "tid": "20501603",
     "amount": 250.50,
@@ -1472,15 +1510,14 @@ payload = {
 
 headers = {"Content-Type": "application/json"}
 response = requests.post(url, json=payload, headers=headers)
-print("Response Status Code:", response.status_code)
-print("Response JSON:", response.json())</pre>
+print("Status code:", response.status_code)
+print("Response:", response.json())</pre>
                 </div>
             </div>
         </div>
 
     </div>
 
-    <!-- Toast Alerts -->
     <div class="toast-container" id="toast-container"></div>
 
     <script>
@@ -1494,8 +1531,7 @@ print("Response JSON:", response.json())</pre>
         const mappingsTableBody = document.getElementById('mappings-table-body');
         const transactionsTableBody = document.getElementById('transactions-table-body');
         const terminalBody = document.getElementById('terminal-body');
-        
-        // Header indicator badges
+
         const serverStatusDot = document.getElementById('server-status-dot');
         const brokerStatusDot = document.getElementById('broker-status-dot');
         const dbTypeLabel = document.getElementById('db-type-label');
@@ -1504,136 +1540,260 @@ print("Response JSON:", response.json())</pre>
         document.getElementById('mapping-form').addEventListener('submit', handleMappingSubmit);
         document.getElementById('webhook-form').addEventListener('submit', handleWebhookSubmit);
 
+        // Mobile navigation drawer
+        function toggleNav() { document.body.classList.toggle('nav-open'); }
+        function closeNav() { document.body.classList.remove('nav-open'); }
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeNav(); });
+
         // Tab Navigation
         function switchPage(pageId) {
-            // Remove active classes
             document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-            
-            // Set active class
+
             document.getElementById(pageId).classList.add('active');
-            
-            // Get clicked element and mark active
+
             const items = document.querySelectorAll('.menu-item');
             if (pageId === 'simulator-page') {
                 items[0].classList.add('active');
-                document.getElementById('navbar-view-title').textContent = 'Console & Virtual Device';
+                document.getElementById('navbar-view-title').textContent = 'Console & virtual device';
             } else if (pageId === 'inventory-page') {
                 items[1].classList.add('active');
-                document.getElementById('navbar-view-title').textContent = 'Device Mapping Database';
+                document.getElementById('navbar-view-title').textContent = 'Device inventory';
                 fetchMappings();
             } else if (pageId === 'analytics-page') {
                 items[2].classList.add('active');
-                document.getElementById('navbar-view-title').textContent = 'Reports, Metrics & Logs';
+                document.getElementById('navbar-view-title').textContent = 'Reports & analytics';
                 fetchTransactions();
             } else if (pageId === 'docs-page') {
                 items[3].classList.add('active');
-                document.getElementById('navbar-view-title').textContent = 'API Webhook Docs';
+                document.getElementById('navbar-view-title').textContent = 'API documentation';
             }
+
+            closeNav();
         }
 
-        // Initialize App
+        /* =====================================================================
+           LOGIN
+           ---------------------------------------------------------------------
+           This is a front-end gate only: the accounts below are visible to
+           anyone who views the page source, so it keeps casual users out but
+           is not real security.
+
+           To make it real, replace the credential check inside handleLogin()
+           with a POST to a gateway endpoint (e.g. /api/login) that verifies
+           the password server-side and returns a session cookie or token.
+           ===================================================================== */
+        const ACCOUNTS = [
+            { username: 'admin',    password: 'qrnet@2026', name: 'Console admin' },
+            { username: 'operator', password: 'net@world1', name: 'Operator' }
+        ];
+
+        const SESSION_KEY = 'qrnet_session';
+        const SESSION_HOURS = 12;      // session storage sign-in
+        const REMEMBER_DAYS = 7;       // "keep me signed in"
+
+        let appStarted = false;
+        let memorySession = null;      // fallback if storage is blocked
+
+        function readSession() {
+            try {
+                const raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
+                if (raw) return JSON.parse(raw);
+            } catch (err) { /* storage blocked — fall through */ }
+            return memorySession;
+        }
+
+        function writeSession(session, remember) {
+            memorySession = session;
+            try {
+                const raw = JSON.stringify(session);
+                if (remember) localStorage.setItem(SESSION_KEY, raw);
+                else sessionStorage.setItem(SESSION_KEY, raw);
+            } catch (err) { /* storage blocked — memory session still works */ }
+        }
+
+        function clearSession() {
+            memorySession = null;
+            try {
+                sessionStorage.removeItem(SESSION_KEY);
+                localStorage.removeItem(SESSION_KEY);
+            } catch (err) { /* nothing to clear */ }
+        }
+
+        function initials(name) {
+            return name.split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+        }
+
+        function showLoginError(message) {
+            const box = document.getElementById('login-error');
+            document.getElementById('login-error-text').textContent = message;
+            box.classList.remove('show');
+            void box.offsetWidth; // restart the shake
+            box.classList.add('show');
+        }
+
+        function togglePassword() {
+            const field = document.getElementById('login-pass');
+            const btn = document.getElementById('password-toggle');
+            const hidden = field.type === 'password';
+            field.type = hidden ? 'text' : 'password';
+            btn.setAttribute('aria-label', hidden ? 'Hide password' : 'Show password');
+            field.focus();
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('login-user').value.trim();
+            const password = document.getElementById('login-pass').value;
+            const remember = document.getElementById('login-remember').checked;
+
+            const account = ACCOUNTS.find(a =>
+                a.username.toLowerCase() === username.toLowerCase() && a.password === password
+            );
+
+            if (!account) {
+                showLoginError("That username and password don't match. Try again.");
+                document.getElementById('login-pass').value = '';
+                document.getElementById('login-pass').focus();
+                return;
+            }
+
+            const ttl = remember ? REMEMBER_DAYS * 24 * 3600 * 1000 : SESSION_HOURS * 3600 * 1000;
+            writeSession({ username: account.username, name: account.name, expires: Date.now() + ttl }, remember);
+
+            document.getElementById('login-form').reset();
+            document.getElementById('login-error').classList.remove('show');
+            enterApp(account.name);
+        }
+
+        function enterApp(name) {
+            document.getElementById('user-name').textContent = name;
+            document.getElementById('user-avatar').textContent = initials(name);
+            document.body.classList.add('authed');
+            startApp();
+            logConsole('sys', `Signed in as ${name}.`);
+        }
+
+        function signOut() {
+            if (!confirm('Sign out of the console?')) return;
+            clearSession();
+            document.body.classList.remove('authed');
+            closeNav();
+            document.getElementById('login-user').value = '';
+            document.getElementById('login-pass').value = '';
+            setTimeout(() => document.getElementById('login-user').focus(), 100);
+        }
+
+        document.getElementById('login-form').addEventListener('submit', handleLogin);
+
+        // Decide on load whether to show the console or the sign-in screen
         window.addEventListener('DOMContentLoaded', () => {
+            const session = readSession();
+            if (session && session.expires > Date.now()) {
+                enterApp(session.name || 'Console admin');
+            } else {
+                clearSession();
+                document.getElementById('login-user').focus();
+            }
+        });
+
+        // Initialize App
+        function startApp() {
+            if (appStarted) return;
+            appStarted = true;
+
             checkServerStatus();
             fetchMappings();
             fetchTransactions();
-            
-            // Auto update status indicators
+
             setInterval(checkServerStatus, 15000);
 
-            // Populate form defaults
             document.getElementById('sim-invoice').value = Math.floor(100000 + Math.random() * 900000);
             document.getElementById('sim-rrn').value = Math.floor(100000000000 + Math.random() * 900000000000);
             document.getElementById('sim-card').value = '4321-xxxx-xxxx-' + Math.floor(1000 + Math.random() * 9000);
             document.getElementById('sim-tid').value = '20501603';
             document.getElementById('sim-amount').value = '250.00';
 
-            // Document endpoint rewrite
             const currentHost = window.location.origin;
+            const placeholderHost = 'https://qrnet-gateway.local';
             document.getElementById('endpoint-url').textContent = `${currentHost}/api/payment`;
-            document.getElementById('curl-code').textContent = document.getElementById('curl-code').textContent.replace('https://your-soundbox-gateway.com', currentHost);
-            document.getElementById('js-code').textContent = document.getElementById('js-code').textContent.replace('https://your-soundbox-gateway.com', currentHost);
-            document.getElementById('python-code').textContent = document.getElementById('python-code').textContent.replace('https://your-soundbox-gateway.com', currentHost);
-        });
+            ['curl-code', 'js-code', 'python-code'].forEach(id => {
+                const el = document.getElementById(id);
+                el.textContent = el.textContent.split(placeholderHost).join(currentHost);
+            });
+        }
 
-        // Setup preset parameters
         function applyPreset(amount, tid) {
             document.getElementById('sim-amount').value = amount;
             document.getElementById('sim-tid').value = tid;
             document.getElementById('sim-invoice').value = Math.floor(100000 + Math.random() * 900000);
             document.getElementById('sim-rrn').value = Math.floor(100000000000 + Math.random() * 900000000000);
             document.getElementById('sim-card').value = '4321-xxxx-xxxx-' + Math.floor(1000 + Math.random() * 9000);
-            
-            showToast('Preset payload loaded! Press trigger button.', 'success');
-            logConsole('sys', `Loaded Quick Preset: ৳${amount} BDT for TID ${tid}`);
+
+            showToast('Preset loaded. Press send when ready.', 'success');
+            logConsole('sys', `Loaded preset: ৳${amount} BDT for TID ${tid}`);
         }
 
-        // Show Toast Notifications
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
-            
-            const iconSvg = type === 'success' ? 
+
+            const iconSvg = type === 'success' ?
                 `<svg class="toast-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>` :
-                `<svg class="toast-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`;
-            
+                `<svg class="toast-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>`;
+
             toast.innerHTML = `${iconSvg}<div>${message}</div>`;
             container.appendChild(toast);
-            
+
             setTimeout(() => toast.classList.add('show'), 10);
-            
             setTimeout(() => {
                 toast.classList.remove('show');
                 setTimeout(() => toast.remove(), 300);
             }, 4000);
         }
 
-        // Write to terminal
         function logConsole(tag, message) {
             const now = new Date();
             const timeStr = now.toTimeString().split(' ')[0];
-            
+
             let tagSpan = '';
             if (tag === 'sys') tagSpan = `<span class="terminal-tag-sys">[SYS]</span>`;
             else if (tag === 'in') tagSpan = `<span class="terminal-tag-in">[API RECEIVE]</span>`;
             else if (tag === 'out') tagSpan = `<span class="terminal-tag-out">[MQTT PUSH]</span>`;
-            
+
             const line = document.createElement('div');
             line.className = 'terminal-line';
             line.innerHTML = `<span class="terminal-time">[${timeStr}]</span>${tagSpan} ${message}`;
-            
+
             terminalBody.appendChild(line);
             terminalBody.scrollTop = terminalBody.scrollHeight;
         }
 
         function clearConsole() {
             terminalBody.innerHTML = '';
-            logConsole('sys', 'Console log history cleared.');
+            logConsole('sys', 'Log cleared.');
         }
 
-        // Copy integrations docs
         function copyCode(elementId) {
             const code = document.getElementById(elementId).textContent;
             navigator.clipboard.writeText(code).then(() => {
-                showToast('Code snippet copied to clipboard!', 'success');
+                showToast('Code copied to clipboard.', 'success');
             }).catch(err => {
-                showToast('Failed to copy code.', 'error');
+                showToast('Copy blocked by the browser. Select the code and copy manually.', 'error');
             });
         }
 
-        // Check APIs status
         async function checkServerStatus() {
             try {
                 const response = await fetch('/api/status');
                 if (!response.ok) throw new Error('Gateway Offline');
                 const data = await response.json();
-                
+
                 serverStatus.online = true;
                 serverStatus.database = data.database;
                 serverStatus.mqtt_broker = data.mqtt_broker;
 
-                // Update navbar and sidebar badges
                 serverStatusDot.className = 'status-dot online';
                 brokerStatusDot.className = 'status-dot online';
                 dbTypeLabel.className = `badge-type badge-${data.database}`;
@@ -1647,18 +1807,17 @@ print("Response JSON:", response.json())</pre>
             }
         }
 
-        // Fetch mappings from DB
         async function fetchMappings() {
             try {
                 const response = await fetch('/api/mappings');
                 if (!response.ok) throw new Error('Database unreachable');
                 const list = await response.json();
                 activeMappings = list;
-                
+
                 populateMappingsTable(list);
                 document.getElementById('kpi-active-devices').textContent = list.length;
             } catch (err) {
-                mappingsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger); font-weight:700;">Error: ${err.message}</td></tr>`;
+                mappingsTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger); font-weight:600;">Couldn't load devices: ${err.message}. Check the gateway, then refresh.</td></tr>`;
             }
         }
 
@@ -1672,8 +1831,8 @@ print("Response JSON:", response.json())</pre>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                                 </svg>
-                                <div class="upload-title">No mapped devices registered</div>
-                                <div class="upload-sub">Register a device or import an Excel inventory list.</div>
+                                <div class="upload-title">No devices yet</div>
+                                <div class="upload-sub">Add one above, or import a spreadsheet to get started.</div>
                             </div>
                         </td>
                     </tr>`;
@@ -1683,16 +1842,16 @@ print("Response JSON:", response.json())</pre>
             list.forEach(item => {
                 const row = document.createElement('tr');
                 const mockSn = document.getElementById('simulated-sn').textContent.trim();
-                const activeStyle = (item.sn.trim() === mockSn) ? 'style="border-left: 4px solid var(--primary); font-weight:bold;"' : '';
-                
+                const activeStyle = (item.sn.trim() === mockSn) ? 'style="box-shadow: inset 3px 0 0 var(--primary); font-weight:700;"' : '';
+
                 row.innerHTML = `
-                    <td ${activeStyle} class="text-mono">${item.tid}</td>
-                    <td class="text-mono" style="color:var(--primary); font-weight:600; cursor:pointer;" onclick="loadMockDevice('${item.sn}')">${item.sn}</td>
+                    <td ${activeStyle}><span class="text-mono">${item.tid}</span></td>
+                    <td><span class="text-mono" style="color:var(--primary); cursor:pointer;" onclick="loadMockDevice('${item.sn}')">${item.sn}</span></td>
                     <td>${item.merchant_name || 'N/A'}</td>
-                    <td class="text-mono">topic_${item.sn}</td>
+                    <td><span class="text-mono">topic_${item.sn}</span></td>
                     <td style="text-align:right;">
-                        <div style="display:inline-flex; gap:0.5rem;">
-                            <button class="btn-morphic btn-morphic-sm" onclick="loadMockDevice('${item.sn}')">Mock</button>
+                        <div style="display:inline-flex; gap:0.4rem;">
+                            <button class="btn-morphic btn-morphic-sm" onclick="loadMockDevice('${item.sn}')">Preview</button>
                             <button class="btn-morphic btn-morphic-danger btn-morphic-sm" onclick="deleteMapping('${item.tid}')">Delete</button>
                         </div>
                     </td>
@@ -1701,14 +1860,10 @@ print("Response JSON:", response.json())</pre>
             });
         }
 
-        // Search mappings client-side
         function filterMappingsTable() {
             const query = document.getElementById('mapping-search').value.toLowerCase().trim();
-            if (!query) {
-                populateMappingsTable(activeMappings);
-                return;
-            }
-            const filtered = activeMappings.filter(item => 
+            if (!query) { populateMappingsTable(activeMappings); return; }
+            const filtered = activeMappings.filter(item =>
                 item.tid.toLowerCase().includes(query) ||
                 item.sn.toLowerCase().includes(query) ||
                 (item.merchant_name && item.merchant_name.toLowerCase().includes(query))
@@ -1721,18 +1876,17 @@ print("Response JSON:", response.json())</pre>
             const mapping = activeMappings.find(m => m.sn === sn);
             if (mapping) {
                 document.getElementById('sim-tid').value = mapping.tid;
-                document.getElementById('scr-line1').textContent = (mapping.merchant_name || 'MTB SOUNDBOX').substring(0, 16).toUpperCase();
+                document.getElementById('scr-line1').textContent = (mapping.merchant_name || 'QRNET PAY').substring(0, 16).toUpperCase();
                 document.getElementById('scr-line2').textContent = 'Ready...';
-                logConsole('sys', `Virtual Soundbox linked to Serial SN: ${sn}`);
-                showToast(`Mock Soundbox SN set to: ${sn}`, 'success');
+                logConsole('sys', `Virtual soundbox linked to serial SN: ${sn}`);
+                showToast(`Previewing device ${sn}`, 'success');
             } else {
-                document.getElementById('scr-line1').textContent = 'MTB SOUNDBOX';
+                document.getElementById('scr-line1').textContent = 'QRNET PAY';
                 document.getElementById('scr-line2').textContent = 'Ready...';
-                logConsole('sys', `Virtual Soundbox linked to unmapped SN: ${sn}`);
+                logConsole('sys', `Virtual soundbox linked to unmapped SN: ${sn}`);
             }
         }
 
-        // Submit mapping
         async function handleMappingSubmit(e) {
             e.preventDefault();
             const tid = document.getElementById('tid-input').value.trim();
@@ -1740,7 +1894,7 @@ print("Response JSON:", response.json())</pre>
             const merchant_name = document.getElementById('merchant-name-input').value.trim();
 
             if (!tid || !sn) {
-                showToast('TID and Serial SN are required', 'error');
+                showToast('Terminal ID and serial are both required.', 'error');
                 return;
             }
 
@@ -1753,47 +1907,45 @@ print("Response JSON:", response.json())</pre>
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Request rejected');
 
-                showToast('Device mapping synchronized successfully', 'success');
-                logConsole('sys', `Updated Mapping: TID [${tid}] ➔ Serial [${sn}]`);
-                
+                showToast('Device saved.', 'success');
+                logConsole('sys', `Mapping updated: TID [${tid}] ➔ Serial [${sn}]`);
+
                 document.getElementById('tid-input').value = '';
                 document.getElementById('sn-input').value = '';
                 document.getElementById('merchant-name-input').value = '';
-                
+
                 await fetchMappings();
                 loadMockDevice(sn);
             } catch (err) {
-                showToast(`Add failed: ${err.message}`, 'error');
+                showToast(`Couldn't save the device: ${err.message}`, 'error');
             }
         }
 
-        // Delete mapping
         async function deleteMapping(tid) {
-            if (!confirm(`Are you sure you want to remove the mapped device for TID: ${tid}?`)) return;
+            if (!confirm(`Delete the device mapped to TID ${tid}?`)) return;
             try {
                 const response = await fetch(`/api/mappings/${tid}`, { method: 'DELETE' });
                 if (!response.ok) throw new Error('Delete rejected');
-                showToast('Device mapping deleted', 'success');
-                logConsole('sys', `Deleted Device Mapping for TID: ${tid}`);
+                showToast('Device deleted.', 'success');
+                logConsole('sys', `Deleted device mapping for TID: ${tid}`);
                 fetchMappings();
             } catch (err) {
-                showToast(`Delete failed: ${err.message}`, 'error');
+                showToast(`Couldn't delete the device: ${err.message}`, 'error');
             }
         }
 
-        // Fetch transaction history
         async function fetchTransactions() {
             try {
                 const response = await fetch('/api/transactions');
                 if (!response.ok) throw new Error('Ledger data unreachable');
                 const list = await response.json();
                 allTransactions = list;
-                
+
                 populateTransactionsTable(list);
                 calculateKpis(list);
                 renderAnalyticsChart(list);
             } catch (err) {
-                transactionsTableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--danger); font-weight:700;">Error: ${err.message}</td></tr>`;
+                transactionsTableBody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--danger); font-weight:600;">Couldn't load payments: ${err.message}. Check the gateway, then refresh.</td></tr>`;
             }
         }
 
@@ -1807,8 +1959,8 @@ print("Response JSON:", response.json())</pre>
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                                 </svg>
-                                <div class="upload-title">No transactions logged</div>
-                                <div class="upload-sub">Trigger the webhook simulator to test.</div>
+                                <div class="upload-title">No payments yet</div>
+                                <div class="upload-sub">Send a test payment from the console to see it here.</div>
                             </div>
                         </td>
                     </tr>`;
@@ -1818,33 +1970,29 @@ print("Response JSON:", response.json())</pre>
             list.forEach(tx => {
                 const date = new Date(tx.time);
                 const timeLabel = date.toLocaleString();
-                const statusPill = tx.status === 'success' ? 
-                    `<span class="status-pill status-pill-success">Success</span>` :
+                const statusPill = tx.status === 'success' ?
+                    `<span class="status-pill status-pill-success">Delivered</span>` :
                     `<span class="status-pill status-pill-failed">Failed</span>`;
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${timeLabel}</td>
-                    <td class="text-mono">${tx.tid}</td>
-                    <td class="text-mono">${tx.sn}</td>
-                    <td class="text-mono">${tx.invoice}</td>
-                    <td class="text-mono">${tx.rrn}</td>
-                    <td class="text-mono">${tx.card_number || 'N/A'}</td>
-                    <td style="font-weight:700; color:white;">৳${parseFloat(tx.amount).toFixed(2)}</td>
+                    <td style="white-space:nowrap;">${timeLabel}</td>
+                    <td><span class="text-mono">${tx.tid}</span></td>
+                    <td><span class="text-mono">${tx.sn}</span></td>
+                    <td><span class="text-mono">${tx.invoice}</span></td>
+                    <td><span class="text-mono">${tx.rrn}</span></td>
+                    <td><span class="text-mono">${tx.card_number || 'N/A'}</span></td>
+                    <td style="font-weight:700; white-space:nowrap;">৳${parseFloat(tx.amount).toFixed(2)}</td>
                     <td style="text-align:right;">${statusPill}</td>
                 `;
                 transactionsTableBody.appendChild(row);
             });
         }
 
-        // Search transactions
         function filterTransactionsTable() {
             const query = document.getElementById('tx-search').value.toLowerCase().trim();
-            if (!query) {
-                populateTransactionsTable(allTransactions);
-                return;
-            }
-            const filtered = allTransactions.filter(tx => 
+            if (!query) { populateTransactionsTable(allTransactions); return; }
+            const filtered = allTransactions.filter(tx =>
                 tx.invoice.toLowerCase().includes(query) ||
                 tx.rrn.toLowerCase().includes(query) ||
                 tx.tid.toLowerCase().includes(query) ||
@@ -1858,41 +2006,48 @@ print("Response JSON:", response.json())</pre>
         function calculateKpis(list) {
             const successes = list.filter(tx => tx.status === 'success');
             const totalVal = successes.reduce((acc, curr) => acc + parseFloat(curr.amount), 0);
-            
+
             document.getElementById('kpi-total-val').textContent = `৳${totalVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
             document.getElementById('kpi-success-count').textContent = successes.length;
-            
+
             const successRate = list.length > 0 ? Math.round((successes.length / list.length) * 100) : 100;
             document.getElementById('kpi-success-sub').textContent = `${successRate}% success rate (${list.length - successes.length} failed)`;
         }
 
-        // Render analytics Chart.js
         function renderAnalyticsChart(list) {
-            // Group transactions by minutes/hours
-            const reversed = [...list].reverse().slice(-15); // Get last 15 entries chronologically
+            const reversed = [...list].reverse().slice(-15);
             const labels = reversed.map(t => new Date(t.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
             const dataAmounts = reversed.map(t => t.status === 'success' ? parseFloat(t.amount) : 0);
 
             const ctx = document.getElementById('trends-chart').getContext('2d');
-            
-            if (trendChartObj) {
-                trendChartObj.destroy();
-            }
+            if (trendChartObj) trendChartObj.destroy();
+
+            const css = getComputedStyle(document.documentElement);
+            const lineColor = css.getPropertyValue('--primary').trim() || '#007aff';
+            const tickColor = css.getPropertyValue('--text-faint').trim() || '#98a2b3';
+            const gridColor = css.getPropertyValue('--hairline').trim() || 'rgba(163,177,198,0.28)';
+            const dotColor = css.getPropertyValue('--accent').trim() || '#30c66b';
+
+            const gradient = ctx.createLinearGradient(0, 0, 0, 240);
+            gradient.addColorStop(0, 'rgba(0, 122, 255, 0.28)');
+            gradient.addColorStop(1, 'rgba(0, 122, 255, 0)');
 
             trendChartObj = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Payment Volume (BDT)',
+                        label: 'Payment volume (BDT)',
                         data: dataAmounts,
-                        borderColor: '#0071e3',
-                        backgroundColor: 'rgba(0, 113, 227, 0.1)',
+                        borderColor: lineColor,
+                        backgroundColor: gradient,
                         borderWidth: 3,
-                        pointBackgroundColor: '#34c759',
-                        pointBorderColor: 'white',
+                        pointBackgroundColor: dotColor,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
                         pointHoverRadius: 7,
-                        tension: 0.3,
+                        tension: 0.4,
                         fill: true
                     }]
                 },
@@ -1900,23 +2055,30 @@ print("Response JSON:", response.json())</pre>
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false }
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(29, 35, 48, 0.92)',
+                            padding: 11,
+                            cornerRadius: 10,
+                            displayColors: false
+                        }
                     },
                     scales: {
                         y: {
-                            grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                            ticks: { color: '#94a3b8' }
+                            border: { display: false },
+                            grid: { color: gridColor, drawBorder: false },
+                            ticks: { color: tickColor, font: { size: 10 } }
                         },
                         x: {
-                            grid: { display: false },
-                            ticks: { color: '#94a3b8' }
+                            border: { display: false },
+                            grid: { display: false, drawBorder: false },
+                            ticks: { color: tickColor, font: { size: 10 }, maxRotation: 0, autoSkipPadding: 16 }
                         }
                     }
                 }
             });
         }
 
-        // Webhook Simulation Call
         async function handleWebhookSubmit(e) {
             e.preventDefault();
             const tid = document.getElementById('sim-tid').value.trim();
@@ -1925,18 +2087,14 @@ print("Response JSON:", response.json())</pre>
             const rrn = document.getElementById('sim-rrn').value.trim();
             const card_number = document.getElementById('sim-card').value.trim();
 
-            logConsole('in', `Post Payment to TID: ${tid} | Value: ৳${amount} BDT`);
+            logConsole('in', `Post payment to TID: ${tid} | Value: ৳${amount} BDT`);
 
             try {
                 const response = await fetch('/api/payment', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        tid,
-                        amount,
-                        invoice,
-                        rrn,
-                        card_number,
+                        tid, amount, invoice, rrn, card_number,
                         time: new Date().toISOString()
                     })
                 });
@@ -1944,32 +2102,28 @@ print("Response JSON:", response.json())</pre>
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Server rejected webhook');
 
-                showToast('Webhook payout simulation complete!', 'success');
+                showToast('Payment sent to the device.', 'success');
                 logConsole('sys', `API status: 200 OK. Mapped SN: ${data.target_device_sn}`);
                 logConsole('out', `MQTT notification published to: ${data.topic}`);
 
-                // Sync UI simulator
                 const activeMockSn = document.getElementById('simulated-sn').textContent.trim();
                 if (data.target_device_sn && data.target_device_sn.trim() === activeMockSn) {
                     playMockAudioBroadcast(amount);
                 } else {
-                    logConsole('sys', `MQTT sent to different serial number [${data.target_device_sn}], virtual Soundbox did not speak.`);
+                    logConsole('sys', `Sent to a different serial [${data.target_device_sn}] — the virtual device stayed silent.`);
                 }
 
-                // Auto-refresh transaction list
                 fetchTransactions();
 
-                // Regenerate fields for next trigger
                 document.getElementById('sim-invoice').value = Math.floor(100000 + Math.random() * 900000);
                 document.getElementById('sim-rrn').value = Math.floor(100000000000 + Math.random() * 900000000000);
             } catch (err) {
-                showToast(`Simulation failed: ${err.message}`, 'error');
-                logConsole('sys', `Webhook callback failed: ${err.message}`);
+                showToast(`Payment didn't go through: ${err.message}`, 'error');
+                logConsole('sys', `Payment callback failed: ${err.message}`);
                 fetchTransactions();
             }
         }
 
-        // Text-to-Speech playback visualizer
         function playMockAudioBroadcast(amount) {
             const led = document.getElementById('device-led');
             const state = document.getElementById('simulated-state');
@@ -1978,26 +2132,24 @@ print("Response JSON:", response.json())</pre>
             const device = document.getElementById('soundbox-case');
 
             led.className = 'soundbox-led receiving';
-            state.textContent = 'PAYMENT DISPATCH';
+            state.textContent = 'Announcing payment';
             state.style.color = 'var(--primary)';
             l1.textContent = 'PAYMENT SUCCESS';
             l2.textContent = `৳ ${amount}`;
 
-            device.style.transform = 'scale(1.04)';
-            device.style.boxShadow = '0 30px 60px -10px rgba(0, 113, 227, 0.4)';
+            device.style.transform = 'scale(1.03)';
+            device.style.boxShadow = '12px 12px 28px rgba(0, 98, 230, 0.28), -9px -9px 22px rgba(255,255,255,0.95)';
 
-            // TTS Speech
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(`Received ${amount} Taka`);
                 utterance.rate = 0.95;
                 utterance.volume = 1.0;
-                
+
                 const voices = window.speechSynthesis.getVoices();
-                // Select regional English or fallback
                 const regionalVoice = voices.find(v => v.lang.includes('en-IN') || v.lang.includes('en-GB') || v.lang.includes('en-US'));
                 if (regionalVoice) utterance.voice = regionalVoice;
-                
+
                 window.speechSynthesis.speak(utterance);
             }
 
@@ -2006,25 +2158,23 @@ print("Response JSON:", response.json())</pre>
                 state.textContent = 'Active / Idle';
                 state.style.color = 'var(--accent)';
                 device.style.transform = 'none';
-                device.style.boxShadow = '0 25px 50px -12px rgba(0, 0, 0, 0.8)';
-                
+                device.style.boxShadow = '';
+
                 const match = activeMappings.find(m => m.sn.trim() === document.getElementById('simulated-sn').textContent.trim());
-                l1.textContent = match ? (match.merchant_name || 'MUTUAL TRUST BANK').substring(0, 16).toUpperCase() : 'MUTUAL TRUST BANK';
+                l1.textContent = match ? (match.merchant_name || 'QRNET PAY').substring(0, 16).toUpperCase() : 'QRNET PAY';
                 l2.textContent = 'Ready...';
             }, 4000);
         }
 
-        // Excel Mappings template download
         function downloadTemplate() {
             const headers = [["tid", "sn", "merchant_name"]];
             const worksheet = XLSX.utils.aoa_to_sheet(headers);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "InventoryTemplate");
-            XLSX.writeFile(workbook, "MTB_Soundbox_Inventory_Template.xlsx");
-            showToast('Template downloaded! Populate columns and import.', 'success');
+            XLSX.writeFile(workbook, "QRNet_Soundbox_Inventory_Template.xlsx");
+            showToast('Template downloaded. Fill in the columns, then import.', 'success');
         }
 
-        // Parse uploaded Excel mapping file
         function handleExcelUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -2037,7 +2187,6 @@ print("Response JSON:", response.json())</pre>
                     const sheet = workbook.Sheets[workbook.SheetNames[0]];
                     const rows = XLSX.utils.sheet_to_json(sheet);
 
-                    // Map columns
                     const mappings = rows.map(r => ({
                         tid: r.tid || r.TID || r.MerchantID || '',
                         sn: r.sn || r.SN || r.SerialNumber || '',
@@ -2045,7 +2194,7 @@ print("Response JSON:", response.json())</pre>
                     })).filter(x => x.tid && x.sn);
 
                     if (mappings.length === 0) {
-                        throw new Error('No valid mappings found. Check column headers (tid, sn).');
+                        throw new Error('no rows had both a tid and an sn column');
                     }
 
                     const response = await fetch('/api/mappings/batch', {
@@ -2054,30 +2203,29 @@ print("Response JSON:", response.json())</pre>
                         body: JSON.stringify({ mappings })
                     });
                     const resData = await response.json();
-                    
+
                     if (!response.ok) throw new Error(resData.error || 'Upload rejected');
 
-                    showToast(`Successfully imported ${resData.count} device mappings!`, 'success');
-                    logConsole('sys', `Excel Import Success: Synced ${resData.count} device mappings bulk rows.`);
+                    showToast(`Imported ${resData.count} devices.`, 'success');
+                    logConsole('sys', `Spreadsheet import: synced ${resData.count} device rows.`);
                     fetchMappings();
                 } catch (err) {
-                    showToast(`Import failed: ${err.message}`, 'error');
+                    showToast(`Import failed — ${err.message}`, 'error');
                 }
             };
             reader.readAsArrayBuffer(file);
-            event.target.value = ''; // Reset file input
+            event.target.value = '';
         }
 
-        // Export active inventory to Excel
         function exportMappingsExcel() {
             if (activeMappings.length === 0) {
-                showToast('No inventory data to export', 'error');
+                showToast('Nothing to export yet — add a device first.', 'error');
                 return;
             }
             const cleanList = activeMappings.map(x => ({
                 'Terminal ID (TID)': x.tid,
                 'Device Serial (SN)': x.sn,
-                'Merchant Title': x.merchant_name || 'N/A',
+                'Merchant Name': x.merchant_name || 'N/A',
                 'MQTT Topic': `topic_${x.sn}`,
                 'Last Updated': x.updated_at
             }));
@@ -2085,14 +2233,13 @@ print("Response JSON:", response.json())</pre>
             const worksheet = XLSX.utils.json_to_sheet(cleanList);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "InventoryList");
-            XLSX.writeFile(workbook, "MTB_Soundbox_Inventory.xlsx");
-            showToast('Inventory exported successfully!', 'success');
+            XLSX.writeFile(workbook, "QRNet_Soundbox_Inventory.xlsx");
+            showToast('Device list exported.', 'success');
         }
 
-        // Export transaction logs to Excel
         function exportTransactionsExcel() {
             if (allTransactions.length === 0) {
-                showToast('No transaction logs to export', 'error');
+                showToast('Nothing to export yet — no payments logged.', 'error');
                 return;
             }
             const cleanLogs = allTransactions.map(t => ({
@@ -2104,14 +2251,14 @@ print("Response JSON:", response.json())</pre>
                 'Retrieval Ref (RRN)': t.rrn,
                 'Account / Card': t.card_number || 'N/A',
                 'Amount (BDT)': parseFloat(t.amount).toFixed(2),
-                'Broadcast Status': t.status.toUpperCase()
+                'Delivery Status': t.status.toUpperCase()
             }));
 
             const worksheet = XLSX.utils.json_to_sheet(cleanLogs);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "TransactionLogs");
-            XLSX.writeFile(workbook, "MTB_Soundbox_Transaction_Ledger.xlsx");
-            showToast('Transaction ledger exported successfully!', 'success');
+            XLSX.writeFile(workbook, "QRNet_Soundbox_Payment_History.xlsx");
+            showToast('Payment history exported.', 'success');
         }
     </script>
 </body>
