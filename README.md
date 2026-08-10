@@ -1,6 +1,6 @@
 # MTB Soundbox Integration & Simulation Platform
 
-This directory contains the Node.js API Gateway & MQTT Push Server designed to integrate Aisino Q161Pro Soundbox devices with bank payment callback APIs (like Mutual Trust Bank - MTB).
+This directory contains the Node.js API Gateway & MQTT Push Server designed to integrate Aisino Q161Pro Soundbox devices with bank payment callback APIs .
 
 ## Architecture Flow
 
